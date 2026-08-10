@@ -1,0 +1,11 @@
+.tools/
+**/node_modules/
+**/.next/
+**/uploads/
+**/prisma/dev.db
+**/prisma/dev.db-journal
+.env
+.env.local
+.env.*.local
+*.zip
+.DS_Store

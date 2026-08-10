@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships  Membership[]
+  projects     Project[]
+  activities   Activity[]
+  boardColumns BoardColumn[]
+  entries      Entry[]
+  families     Family[]
+}
+
+model BoardColumn {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  position       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projects     Project[]
+
+  @@index([organizationId, position])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  memberships        Membership[]
+  assignments        ProjectAssignment[]
+  deadlineAssignments DeadlineAssignment[]
+  createdProjects    Project[]           @relation("ProjectCreator")
+  checklistCreated   ChecklistItem[]     @relation("ChecklistCreator")
+  checklistAssigned  ChecklistItem[]     @relation("ChecklistAssignee")
+  checklistCompleted ChecklistItem[]     @relation("ChecklistCompleter")
+  entries            Entry[]
+  activities         Activity[]
+  familiesCreated    Family[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String   @default("member") // member | admin
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model Project {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  jobNumber          String
+  jobName            String
+  status             String   @default("Active") // Active | Archived
+  leadTechnicianId   String?
+  leadEngineer       String   @default("")
+  client             String   @default("")
+  architect          String   @default("")
+  architectSoftware  String   @default("")
+  revitVersion       String   @default("")
+  startDate          String   @default("")
+  nextIssueDate      String   @default("")
+  boardColumnId      String?
+  boardOrder         Int      @default(0)
+  createdById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  boardColumn  BoardColumn?        @relation(fields: [boardColumnId], references: [id], onDelete: SetNull)
+  createdBy    User?               @relation("ProjectCreator", fields: [createdById], references: [id])
+  assignments  ProjectAssignment[]
+  deadlines    ProjectDeadline[]
+  milestones   Milestone[]
+  checklist    ChecklistItem[]
+  entries      Entry[]
+  activities   Activity[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, updatedAt])
+  @@index([boardColumnId, boardOrder])
+}
+
+model ProjectAssignment {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+model ProjectDeadline {
+  id        String   @id @default(cuid())
+  projectId String
+  label     String   // e.g. Start, Issue, S3 Issue, Custom
+  date      String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project     Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignments DeadlineAssignment[]
+
+  @@index([projectId, sortOrder])
+}
+
+model DeadlineAssignment {
+  id         String   @id @default(cuid())
+  deadlineId String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  deadline ProjectDeadline @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([deadlineId, userId])
+}
+
+model Milestone {
+  id            String   @id @default(cuid())
+  projectId     String
+  stage         String
+  targetDate    String   @default("")
+  confirmedDate String   @default("")
+  isReached     Boolean  @default(false)
+  notes         String   @default("")
+  updatedById   String?
+  updatedAt     DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  projectId   String
+  text        String
+  assignedToId String?
+  isComplete  Boolean   @default(false)
+  createdById String?
+  completedById String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo  User?   @relation("ChecklistAssignee", fields: [assignedToId], references: [id])
+  createdBy   User?   @relation("ChecklistCreator", fields: [createdById], references: [id])
+  completedBy User?   @relation("ChecklistCompleter", fields: [completedById], references: [id])
+
+  @@index([projectId, isComplete])
+}
+
+model Entry {
+  id               String   @id @default(cuid())
+  organizationId   String?
+  projectId        String?
+  contentType      String   @default("note")
+  textContent      String   @default("")
+  linkUrl          String   @default("")
+  fileName         String?
+  fileMimeType     String?
+  sharePointItemId String?
+  sharePointWebUrl String?
+  localFilePath    String?
+  tagsJson         String   @default("{}")
+  createdById      String?
+  createdAt        DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy    User?         @relation(fields: [createdById], references: [id])
+
+  @@index([projectId, createdAt])
+  @@index([organizationId, createdAt])
+}
+
+model Activity {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String?
+  action         String
+  detail         String   @default("")
+  userId         String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, createdAt])
+}
+
+model Family {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String   @default("")
+  category       String   @default("Other")
+  materials      String   @default("") // comma-separated for easy search
+  keywords       String   @default("")
+  filePath       String   // network path to .rfa — not uploaded
+  jobNumber      String   @default("")
+  jobName        String   @default("")
+  revitVersion   String   @default("")
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?         @relation(fields: [createdById], references: [id])
+  images       FamilyImage[]
+
+  @@index([organizationId, updatedAt])
+  @@index([organizationId, category])
+}
+
+model FamilyImage {
+  id               String   @id @default(cuid())
+  familyId         String
+  fileName         String
+  fileMimeType     String?
+  sharePointItemId String?
+  sharePointWebUrl String?
+  localFilePath    String?
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, sortOrder])
+}

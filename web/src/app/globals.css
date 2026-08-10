@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #eef2f5;
+  --bg-elevated: #f8fafc;
+  --bg-deep: #102033;
+  --ink: #102033;
+  --ink-soft: #4b5c6e;
+  --ink-muted: #7a8b9c;
+  --line: #cfd8e2;
+  --accent: #1f6f8b;
+  --accent-deep: #15546a;
+  --accent-soft: #d7eaf1;
+  --success: #2f7d57;
+  --warning: #b7791f;
+  --danger: #b54545;
+  --shadow: 0 20px 48px rgba(16, 32, 51, 0.08);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-deep: var(--bg-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-white: #ffffff;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(31, 111, 139, 0.14), transparent 32%),
+    radial-gradient(circle at 88% 8%, rgba(16, 32, 51, 0.08), transparent 28%),
+    linear-gradient(180deg, #f5f8fb 0%, #e8eef4 100%);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.app-grid {
+  background-image:
+    linear-gradient(rgba(16, 32, 51, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 32, 51, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.fade-up {
+  animation: fadeUp 0.55s ease both;
+}
+
+.fade-up-delay {
+  animation: fadeUp 0.7s ease 0.08s both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawLine {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.hero-rule {
+  transform-origin: left;
+  animation: drawLine 0.9s ease 0.2s both;
+}
+
+.display {
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+}
