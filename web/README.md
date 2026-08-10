@@ -48,6 +48,22 @@ Copy `.env.example` to `.env`. Important keys:
 6. Put the drive id in `SHAREPOINT_DRIVE_ID`.
 7. Set `AUTH_DEV_MODE=false` before real team use.
 
+## Deploy on Vercel
+
+The Next.js app lives in **`web/`**, not the repo root. In Vercel:
+
+1. **Settings → General → Root Directory** → set to `web` → Save
+2. **Settings → Build & Development** → Framework Preset → **Next.js** (not Other)
+3. Leave Output Directory empty/default
+4. **Settings → Environment Variables** (Production + Preview):
+   - `DATABASE_URL` — Neon/Postgres connection string (SQLite won’t work on Vercel)
+   - `AUTH_SECRET` — random secret
+   - `AUTH_URL` — your Vercel URL, e.g. `https://your-app.vercel.app`
+   - `AUTH_DEV_MODE` — `true` for early testing
+5. Redeploy (**Deployments → … → Redeploy**, uncheck “Use existing Build Cache”)
+
+If every page is still `404: NOT_FOUND`, Root Directory or Framework Preset is almost always wrong.
+
 ## Scripts
 
 - `npm run dev` — local server
