@@ -6,8 +6,6 @@ import { DEFAULT_BOARD_COLUMNS } from "../src/lib/board";
 const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL ?? "" });
 const prisma = new PrismaClient({ adapter });
 
-const prisma = new PrismaClient();
-
 async function main() {
   const org = await prisma.organization.upsert({
     where: { slug: ORG_SLUG },
