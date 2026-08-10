@@ -9,3 +9,12 @@
 .env.*.local
 *.zip
 .DS_Store
+
+.vercel
+.env*
+
+.env.local
+web/.env.local
+web/.env.vercel
+.vercel
+web/.vercel
