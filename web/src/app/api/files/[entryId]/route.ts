@@ -16,10 +16,9 @@ export async function GET(
   const { entryId } = await params;
   const entry = await prisma.entry.findUnique({
     where: { id: entryId },
-    include: { project: true },
   });
 
-  if (!entry || entry.project.organizationId !== session.user.organizationId) {
+  if (!entry || entry.organizationId !== session.user.organizationId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
