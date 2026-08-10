@@ -29,7 +29,13 @@ async function uploadFromForm(
   userId: string,
   orgSlug: string,
   projectNumber: string,
-) {
+): Promise<{
+  fileName?: string;
+  fileMimeType?: string;
+  sharePointItemId?: string;
+  sharePointWebUrl?: string;
+  localFilePath?: string;
+}> {
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return {};
 
