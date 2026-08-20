@@ -1,0 +1,10 @@
+{
+  "builtin": false,
+  "default_enabled": true,
+  "type": "extension",
+  "rocket_mode_compatible": true,
+  "name": "WyeTechHub",
+  "description": "Open Tech Hub from Revit — notes, screenshots, checklists, board stage.",
+  "author": "Webb Yates Engineers",
+  "version": "0.1.0"
+}

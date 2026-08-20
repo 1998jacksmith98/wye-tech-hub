@@ -58,6 +58,7 @@ model User {
   entries            Entry[]
   activities         Activity[]
   familiesCreated    Family[]
+  revitTokens        RevitApiToken[]
 }
 
 model Account {
@@ -255,6 +256,20 @@ model Activity {
   user         User?        @relation(fields: [userId], references: [id])
 
   @@index([organizationId, createdAt])
+}
+
+model RevitApiToken {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String    @default("Revit")
+  tokenHash  String    @unique
+  prefix     String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Family {

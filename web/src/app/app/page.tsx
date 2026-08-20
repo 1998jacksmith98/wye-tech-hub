@@ -49,9 +49,14 @@ export default async function ProjectsHome({
               Projects
             </h1>
           </div>
-          <Link href="/app/projects/new">
-            <Button>+ New project</Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/app/revit">
+              <Button variant="ghost">Connect Revit</Button>
+            </Link>
+            <Link href="/app/projects/new">
+              <Button>+ New project</Button>
+            </Link>
+          </div>
         </div>
 
         <div className="mb-5 flex gap-2">

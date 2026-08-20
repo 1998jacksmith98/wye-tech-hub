@@ -8,6 +8,8 @@ Shared project notes hub for the Webb Yates Engineers technician team.
 |---|---|
 | [`web/`](web/) | **New web app** (Next.js) — use this |
 | [`wye_tech_hub/`](wye_tech_hub/) | Original desktop CustomTkinter prototype |
+| [`tools/latest-drawings/`](tools/latest-drawings/) | Latest issued PDF pack builder (Windows) |
+| [`tools/revit/`](tools/revit/) | pyRevit Tech Hub tab (notes, checklist, board stage) |
 | [`.tools/`](.tools/) | Optional portable Node for local development |
 
 ## Quick start (web)

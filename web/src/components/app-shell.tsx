@@ -19,7 +19,7 @@ export function AppShell({
             <Link href="/app" className="display text-lg font-semibold tracking-tight">
               <span className="text-accent">WYE</span> Tech Hub
             </Link>
-            <nav className="hidden items-center gap-1 text-sm font-semibold text-ink-soft sm:flex">
+            <nav className="flex flex-wrap items-center gap-1 text-sm font-semibold text-ink-soft">
               <Link href="/app" className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink">
                 Projects
               </Link>
@@ -52,6 +52,12 @@ export function AppShell({
                 className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
               >
                 Team
+              </Link>
+              <Link
+                href="/app/revit"
+                className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
+              >
+                Revit
               </Link>
             </nav>
           </div>
