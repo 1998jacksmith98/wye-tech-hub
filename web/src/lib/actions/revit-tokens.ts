@@ -19,7 +19,7 @@ export async function createRevitToken(formData: FormData) {
     },
   });
 
-  revalidatePath("/app/revit");
+  revalidatePath("/app/admin");
   return token;
 }
 
@@ -28,5 +28,5 @@ export async function revokeRevitToken(tokenId: string) {
   await prisma.revitApiToken.deleteMany({
     where: { id: tokenId, userId: session.user.id },
   });
-  revalidatePath("/app/revit");
+  revalidatePath("/app/admin");
 }

@@ -48,16 +48,16 @@ export function AppShell({
                 Families
               </Link>
               <Link
-                href="/app/team"
+                href="/app/details"
                 className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
               >
-                Team
+                Details
               </Link>
               <Link
-                href="/app/revit"
+                href="/app/admin"
                 className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
               >
-                Revit
+                Admin
               </Link>
             </nav>
           </div>

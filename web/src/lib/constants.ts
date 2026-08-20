@@ -53,6 +53,7 @@ export const TAG_TOPICS = [
   "MEP Coordination",
   "Revit Software",
   "Custom Families",
+  "Typical details",
   "Templates / Standards",
   "Other",
 ] as const;
@@ -75,6 +76,22 @@ export const FAMILY_CATEGORIES = [
   "Plumbing",
   "Profiles / Detail Items",
   "Annotation / Tags",
+  "Other",
+] as const;
+
+export const DETAIL_CATEGORIES = [
+  "Foundations",
+  "Steel connections",
+  "Concrete / RC",
+  "Masonry",
+  "Timber",
+  "Waterproofing",
+  "Cladding",
+  "Stairs / railings",
+  "Roof",
+  "Drainage",
+  "Pavement",
+  "MEP",
   "Other",
 ] as const;
 

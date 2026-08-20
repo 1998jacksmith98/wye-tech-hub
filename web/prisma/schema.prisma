@@ -21,6 +21,7 @@ model Organization {
   boardColumns BoardColumn[]
   entries      Entry[]
   families     Family[]
+  typicalDetails TypicalDetail[]
 }
 
 model BoardColumn {
@@ -58,6 +59,7 @@ model User {
   entries            Entry[]
   activities         Activity[]
   familiesCreated    Family[]
+  typicalDetailsCreated TypicalDetail[]
   revitTokens        RevitApiToken[]
 }
 
@@ -138,6 +140,7 @@ model Project {
   checklist    ChecklistItem[]
   entries      Entry[]
   activities   Activity[]
+  typicalDetails TypicalDetail[]
 
   @@index([organizationId, status])
   @@index([organizationId, updatedAt])
@@ -310,4 +313,47 @@ model FamilyImage {
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@index([familyId, sortOrder])
+}
+
+model TypicalDetail {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String?
+  name           String
+  description    String   @default("")
+  category       String   @default("Other")
+  materials      String   @default("")
+  keywords       String   @default("")
+  filePath       String
+  jobNumber      String   @default("")
+  jobName        String   @default("")
+  drawnIn        String   @default("")
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdBy    User?                @relation(fields: [createdById], references: [id])
+  images       TypicalDetailImage[]
+
+  @@index([organizationId, updatedAt])
+  @@index([organizationId, category])
+  @@index([projectId])
+}
+
+model TypicalDetailImage {
+  id               String   @id @default(cuid())
+  detailId         String
+  fileName         String
+  fileMimeType     String?
+  sharePointItemId String?
+  sharePointWebUrl String?
+  localFilePath    String?
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  detail TypicalDetail @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  @@index([detailId, sortOrder])
 }
