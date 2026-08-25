@@ -21,6 +21,12 @@ export type FamilyImageData = {
   localFilePath: string | null;
 };
 
+export type FamilyProjectOption = {
+  id: string;
+  jobNumber: string;
+  jobName: string;
+};
+
 export type FamilyData = {
   id: string;
   name: string;
@@ -31,6 +37,7 @@ export type FamilyData = {
   filePath: string;
   jobNumber: string;
   jobName: string;
+  projectId: string | null;
   revitVersion: string;
   createdByName: string;
   createdAt: string | Date;
@@ -45,17 +52,21 @@ function imageSrc(image: FamilyImageData) {
 
 function FamilyForm({
   initial,
+  projects,
   pending,
   submitLabel,
   onSubmit,
   onCancel,
 }: {
   initial?: FamilyData;
+  projects: FamilyProjectOption[];
   pending: boolean;
   submitLabel: string;
   onSubmit: (fd: FormData) => void;
   onCancel: () => void;
 }) {
+  const [projectId, setProjectId] = useState(initial?.projectId || "");
+
   return (
     <form
       className="grid gap-3 md:grid-cols-2"
@@ -82,6 +93,25 @@ function FamilyForm({
             </option>
           ))}
         </Select>
+      </div>
+      <div className="md:col-span-2">
+        <Label>Link to project</Label>
+        <Select
+          name="projectId"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+        >
+          <option value="">— Not linked —</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.jobNumber} — {p.jobName}
+            </option>
+          ))}
+        </Select>
+        <p className="mt-1 text-xs text-ink-muted">
+          Optional. Linked families appear on that job&apos;s information feed
+          under Project specific families.
+        </p>
       </div>
       <div className="md:col-span-2">
         <Label>.rfa network path</Label>
@@ -122,22 +152,6 @@ function FamilyForm({
         />
       </div>
       <div>
-        <Label>Job number (where the file lives)</Label>
-        <Input
-          name="jobNumber"
-          placeholder="e.g. WYE-2026-001"
-          defaultValue={initial?.jobNumber || ""}
-        />
-      </div>
-      <div>
-        <Label>Job name</Label>
-        <Input
-          name="jobName"
-          placeholder="e.g. 30 Cannon Street"
-          defaultValue={initial?.jobName || ""}
-        />
-      </div>
-      <div>
         <Label>Revit version</Label>
         <Select
           name="revitVersion"
@@ -173,9 +187,11 @@ function FamilyForm({
 
 function FamilyCard({
   family,
+  projects,
   onChanged,
 }: {
   family: FamilyData;
+  projects: FamilyProjectOption[];
   onChanged?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -191,6 +207,7 @@ function FamilyCard({
         {error ? <p className="mb-2 text-sm text-danger">{error}</p> : null}
         <FamilyForm
           initial={family}
+          projects={projects}
           pending={pending}
           submitLabel={pending ? "Saving..." : "Save changes"}
           onCancel={() => setEditing(false)}
@@ -386,7 +403,13 @@ function FamilyCard({
   );
 }
 
-export function FamilyLibrary({ families }: { families: FamilyData[] }) {
+export function FamilyLibrary({
+  families,
+  projects,
+}: {
+  families: FamilyData[];
+  projects: FamilyProjectOption[];
+}) {
   const [showForm, setShowForm] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -473,6 +496,7 @@ export function FamilyLibrary({ families }: { families: FamilyData[] }) {
             {error ? <p className="mb-2 text-sm text-danger">{error}</p> : null}
             <FamilyForm
               pending={pending}
+              projects={projects}
               submitLabel={pending ? "Saving..." : "Add to library"}
               onCancel={() => setShowForm(false)}
               onSubmit={(fd) => {
@@ -584,7 +608,7 @@ export function FamilyLibrary({ families }: { families: FamilyData[] }) {
           </div>
         ) : (
           filtered.map((family) => (
-            <FamilyCard key={family.id} family={family} />
+            <FamilyCard key={family.id} family={family} projects={projects} />
           ))
         )}
       </div>

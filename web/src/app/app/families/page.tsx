@@ -7,14 +7,21 @@ export default async function FamiliesPage() {
   const session = await requireSession();
   const orgId = session.user.organizationId!;
 
-  const families = await prisma.family.findMany({
-    where: { organizationId: orgId },
-    include: {
-      createdBy: true,
-      images: { orderBy: { sortOrder: "asc" } },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+  const [families, projects] = await Promise.all([
+    prisma.family.findMany({
+      where: { organizationId: orgId },
+      include: {
+        createdBy: true,
+        images: { orderBy: { sortOrder: "asc" } },
+      },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.project.findMany({
+      where: { organizationId: orgId, status: "Active" },
+      select: { id: true, jobNumber: true, jobName: true },
+      orderBy: { jobNumber: "asc" },
+    }),
+  ]);
 
   return (
     <div className="fade-up space-y-6">
@@ -26,9 +33,10 @@ export default async function FamiliesPage() {
           Families
         </h1>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          Shared catalogue of custom families. We store the network path to the
-          .rfa (not the file itself) plus preview images so the library can grow
-          without blowing storage.
+          Shared catalogue of custom families. Store the network path to the
+          .rfa (not the file itself) plus preview images, and optionally link
+          a family to a Tech Hub project so it shows on that job&apos;s
+          information feed.
         </p>
       </div>
 
@@ -38,6 +46,7 @@ export default async function FamiliesPage() {
           title={`${families.length} famil${families.length === 1 ? "y" : "ies"}`}
         />
         <FamilyLibrary
+          projects={projects}
           families={families.map((f) => ({
             id: f.id,
             name: f.name,
@@ -48,6 +57,7 @@ export default async function FamiliesPage() {
             filePath: f.filePath,
             jobNumber: f.jobNumber,
             jobName: f.jobName,
+            projectId: f.projectId,
             revitVersion: f.revitVersion,
             createdByName: f.createdBy?.name || "Someone",
             createdAt: f.createdAt,

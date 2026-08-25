@@ -13,6 +13,7 @@ import { AssignUsersForm } from "@/components/assign-users-form";
 import { ChecklistItemRow } from "@/components/checklist-controls";
 import { EntryFeed } from "@/components/entry-feed";
 import { cn } from "@/lib/utils";
+import { ensureProjectLibraryFeed } from "@/lib/library-feed";
 
 export default async function ProjectDetailPage({
   params,
@@ -21,9 +22,15 @@ export default async function ProjectDetailPage({
 }) {
   const session = await requireSession();
   const { id } = await params;
+  const orgId = session.user.organizationId!;
+
+  await ensureProjectLibraryFeed({
+    organizationId: orgId,
+    projectId: id,
+  });
 
   const project = await prisma.project.findFirst({
-    where: { id, organizationId: session.user.organizationId! },
+    where: { id, organizationId: orgId },
     include: {
       assignments: { include: { user: true } },
       milestones: { orderBy: { id: "asc" } },

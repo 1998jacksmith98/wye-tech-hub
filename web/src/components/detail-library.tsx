@@ -105,6 +105,10 @@ function DetailForm({
             </option>
           ))}
         </Select>
+        <p className="mt-1 text-xs text-ink-muted">
+          Optional. Linked details appear on that job&apos;s information feed
+          under Typical details.
+        </p>
       </div>
       <div className="md:col-span-2">
         <Label>File network path</Label>

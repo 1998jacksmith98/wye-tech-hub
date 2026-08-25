@@ -6,6 +6,11 @@ import { requireSession } from "@/lib/session";
 import { logActivity } from "@/lib/activity";
 import { storeUpload } from "@/lib/files";
 import { ORG_SLUG } from "@/lib/constants";
+import {
+  removeLibraryFeedEntry,
+  resolveLinkedProject,
+  syncLibraryFeedEntry,
+} from "@/lib/library-feed";
 
 async function ownedDetail(detailId: string, organizationId: string) {
   return prisma.typicalDetail.findFirst({
@@ -14,17 +19,30 @@ async function ownedDetail(detailId: string, organizationId: string) {
   });
 }
 
-async function resolveProject(
-  organizationId: string,
-  projectId: string,
-): Promise<{ id: string; jobNumber: string; jobName: string } | null> {
-  const id = projectId.trim();
-  if (!id) return null;
-  const project = await prisma.project.findFirst({
-    where: { id, organizationId },
-    select: { id: true, jobNumber: true, jobName: true },
+async function firstDetailImage(detailId: string) {
+  return prisma.typicalDetailImage.findFirst({
+    where: { detailId },
+    orderBy: { sortOrder: "asc" },
   });
-  return project;
+}
+
+async function publishDetailToFeed(params: {
+  organizationId: string;
+  userId: string;
+  detailId: string;
+  projectId: string | null;
+  name: string;
+  description: string;
+  category: string;
+  filePath: string;
+}) {
+  const image = await firstDetailImage(params.detailId);
+  await syncLibraryFeedEntry({
+    ...params,
+    kind: "typical-detail",
+    libraryId: params.detailId,
+    image,
+  });
 }
 
 async function saveImages(
@@ -82,7 +100,7 @@ export async function addTypicalDetail(formData: FormData) {
   const keywords = String(formData.get("keywords") || "").trim();
   const filePath = String(formData.get("filePath") || "").trim();
   const drawnIn = String(formData.get("drawnIn") || "").trim();
-  const project = await resolveProject(
+  const project = await resolveLinkedProject(
     orgId,
     String(formData.get("projectId") || ""),
   );
@@ -117,6 +135,17 @@ export async function addTypicalDetail(formData: FormData) {
     startOrder: 0,
   });
 
+  await publishDetailToFeed({
+    organizationId: orgId,
+    userId: session.user.id,
+    detailId: detail.id,
+    projectId: project?.id || null,
+    name,
+    description,
+    category,
+    filePath,
+  });
+
   await logActivity({
     organizationId: orgId,
     projectId: project?.id || null,
@@ -141,7 +170,7 @@ export async function updateTypicalDetail(detailId: string, formData: FormData) 
   const keywords = String(formData.get("keywords") || "").trim();
   const filePath = String(formData.get("filePath") || "").trim();
   const drawnIn = String(formData.get("drawnIn") || "").trim();
-  const project = await resolveProject(
+  const project = await resolveLinkedProject(
     session.user.organizationId!,
     String(formData.get("projectId") || ""),
   );
@@ -172,6 +201,17 @@ export async function updateTypicalDetail(detailId: string, formData: FormData) 
     startOrder: existing.images.length,
   });
 
+  await publishDetailToFeed({
+    organizationId: session.user.organizationId!,
+    userId: session.user.id,
+    detailId,
+    projectId: project?.id || null,
+    name,
+    description,
+    category,
+    filePath,
+  });
+
   await logActivity({
     organizationId: session.user.organizationId!,
     projectId: project?.id || null,
@@ -189,6 +229,11 @@ export async function deleteTypicalDetail(detailId: string) {
   if (!existing) throw new Error("Detail not found");
 
   await prisma.typicalDetail.delete({ where: { id: detailId } });
+  await removeLibraryFeedEntry({
+    organizationId: session.user.organizationId!,
+    kind: "typical-detail",
+    libraryId: detailId,
+  });
 
   await logActivity({
     organizationId: session.user.organizationId!,

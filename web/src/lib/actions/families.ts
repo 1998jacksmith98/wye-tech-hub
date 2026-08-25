@@ -6,6 +6,11 @@ import { requireSession } from "@/lib/session";
 import { logActivity } from "@/lib/activity";
 import { storeUpload } from "@/lib/files";
 import { ORG_SLUG } from "@/lib/constants";
+import {
+  removeLibraryFeedEntry,
+  resolveLinkedProject,
+  syncLibraryFeedEntry,
+} from "@/lib/library-feed";
 
 function splitList(value: string) {
   return value
@@ -31,8 +36,10 @@ export async function addFamily(formData: FormData) {
   const materials = String(formData.get("materials") || "").trim();
   const keywords = String(formData.get("keywords") || "").trim();
   const filePath = String(formData.get("filePath") || "").trim();
-  const jobNumber = String(formData.get("jobNumber") || "").trim();
-  const jobName = String(formData.get("jobName") || "").trim();
+  const project = await resolveLinkedProject(
+    orgId,
+    String(formData.get("projectId") || ""),
+  );
   const revitVersion = String(formData.get("revitVersion") || "").trim();
 
   if (!name) throw new Error("Family name is required.");
@@ -50,8 +57,9 @@ export async function addFamily(formData: FormData) {
       materials,
       keywords,
       filePath,
-      jobNumber,
-      jobName,
+      projectId: project?.id || null,
+      jobNumber: project?.jobNumber || "",
+      jobName: project?.jobName || "",
       revitVersion,
       createdById: session.user.id,
     },
@@ -86,8 +94,25 @@ export async function addFamily(formData: FormData) {
     order += 1;
   }
 
+  await syncLibraryFeedEntry({
+    organizationId: orgId,
+    userId: session.user.id,
+    kind: "family",
+    libraryId: family.id,
+    projectId: project?.id || null,
+    name,
+    description,
+    category,
+    filePath,
+    image: await prisma.familyImage.findFirst({
+      where: { familyId: family.id },
+      orderBy: { sortOrder: "asc" },
+    }),
+  });
+
   await logActivity({
     organizationId: orgId,
+    projectId: project?.id || null,
     userId: session.user.id,
     action: "added family",
     detail: name,
@@ -108,8 +133,10 @@ export async function updateFamily(familyId: string, formData: FormData) {
   const materials = String(formData.get("materials") || "").trim();
   const keywords = String(formData.get("keywords") || "").trim();
   const filePath = String(formData.get("filePath") || "").trim();
-  const jobNumber = String(formData.get("jobNumber") || "").trim();
-  const jobName = String(formData.get("jobName") || "").trim();
+  const project = await resolveLinkedProject(
+    session.user.organizationId!,
+    String(formData.get("projectId") || ""),
+  );
   const revitVersion = String(formData.get("revitVersion") || "").trim();
 
   if (!name) throw new Error("Family name is required.");
@@ -124,8 +151,9 @@ export async function updateFamily(familyId: string, formData: FormData) {
       materials,
       keywords,
       filePath,
-      jobNumber,
-      jobName,
+      projectId: project?.id || null,
+      jobNumber: project?.jobNumber || "",
+      jobName: project?.jobName || "",
       revitVersion,
     },
   });
@@ -159,8 +187,25 @@ export async function updateFamily(familyId: string, formData: FormData) {
     order += 1;
   }
 
+  await syncLibraryFeedEntry({
+    organizationId: session.user.organizationId!,
+    userId: session.user.id,
+    kind: "family",
+    libraryId: family.id,
+    projectId: project?.id || null,
+    name,
+    description,
+    category,
+    filePath,
+    image: await prisma.familyImage.findFirst({
+      where: { familyId: family.id },
+      orderBy: { sortOrder: "asc" },
+    }),
+  });
+
   await logActivity({
     organizationId: session.user.organizationId!,
+    projectId: project?.id || null,
     userId: session.user.id,
     action: "updated family",
     detail: name,
@@ -175,6 +220,11 @@ export async function deleteFamily(familyId: string) {
   if (!family) throw new Error("Family not found");
 
   await prisma.family.delete({ where: { id: familyId } });
+  await removeLibraryFeedEntry({
+    organizationId: session.user.organizationId!,
+    kind: "family",
+    libraryId: familyId,
+  });
 
   await logActivity({
     organizationId: session.user.organizationId!,

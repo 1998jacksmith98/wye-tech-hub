@@ -141,6 +141,7 @@ model Project {
   entries      Entry[]
   activities   Activity[]
   typicalDetails TypicalDetail[]
+  families       Family[]
 
   @@index([organizationId, status])
   @@index([organizationId, updatedAt])
@@ -278,6 +279,7 @@ model RevitApiToken {
 model Family {
   id             String   @id @default(cuid())
   organizationId String
+  projectId      String?
   name           String
   description    String   @default("")
   category       String   @default("Other")
@@ -292,11 +294,13 @@ model Family {
   updatedAt      DateTime @updatedAt
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdBy    User?         @relation(fields: [createdById], references: [id])
   images       FamilyImage[]
 
   @@index([organizationId, updatedAt])
   @@index([organizationId, category])
+  @@index([projectId])
 }
 
 model FamilyImage {
