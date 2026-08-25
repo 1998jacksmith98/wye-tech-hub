@@ -21,6 +21,7 @@
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^6.19.2",
     "@prisma/client": "^6.19.2",
+    "@vercel/blob": "^1.1.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.28.0",

@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { getStorageStatus } from "@/lib/storage";
 import { Card, SectionTitle } from "@/components/ui";
 import { TeamManager } from "@/components/team-manager";
 import { RevitConnect } from "@/components/revit-connect";
@@ -18,6 +19,8 @@ export default async function AdminPage() {
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
   });
+
+  const storage = getStorageStatus();
 
   return (
     <div className="fade-up space-y-6">
@@ -51,6 +54,29 @@ export default async function AdminPage() {
             isYou: m.user.id === session.user.id,
           }))}
         />
+      </Card>
+
+      <Card className="p-6">
+        <SectionTitle eyebrow="Infrastructure" title="Storage" />
+        <div className="mt-4 flex items-start gap-3">
+          <span
+            className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+              storage.ready
+                ? "bg-emerald-100 text-emerald-800"
+                : "bg-amber-100 text-amber-900"
+            }`}
+            aria-hidden
+          >
+            {storage.ready ? "✓" : "✗"}
+          </span>
+          <div>
+            <p className="font-medium text-ink">
+              {storage.label}
+              {storage.ready ? " ready" : " not configured"}
+            </p>
+            <p className="mt-1 text-sm text-ink-soft">{storage.detail}</p>
+          </div>
+        </div>
       </Card>
 
       <Card className="p-6">
