@@ -6,6 +6,20 @@ APP_DIR = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "WyeT
 CONFIG_PATH = os.path.join(APP_DIR, "revit.json")
 
 
+def normalize_hub_url(url):
+    text = (url or "").strip()
+    while text.endswith("/"):
+        text = text[:-1]
+    lower = text.lower()
+    for suffix in ("/app/revit", "/app"):
+        if lower.endswith(suffix):
+            text = text[: len(text) - len(suffix)]
+            break
+    while text.endswith("/"):
+        text = text[:-1]
+    return text
+
+
 def load():
     if not os.path.isfile(CONFIG_PATH):
         return {"hubUrl": "", "token": ""}
@@ -13,8 +27,8 @@ def load():
         with open(CONFIG_PATH, "r") as handle:
             data = json.load(handle)
         return {
-            "hubUrl": (data.get("hubUrl") or "").rstrip("/"),
-            "token": data.get("token") or "",
+            "hubUrl": normalize_hub_url(data.get("hubUrl") or ""),
+            "token": (data.get("token") or "").strip(),
         }
     except Exception:
         return {"hubUrl": "", "token": ""}
@@ -24,7 +38,7 @@ def save(hub_url, token):
     if not os.path.isdir(APP_DIR):
         os.makedirs(APP_DIR)
     payload = {
-        "hubUrl": (hub_url or "").strip().rstrip("/"),
+        "hubUrl": normalize_hub_url(hub_url),
         "token": (token or "").strip(),
     }
     with open(CONFIG_PATH, "w") as handle:

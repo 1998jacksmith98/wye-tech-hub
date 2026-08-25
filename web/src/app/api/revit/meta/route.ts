@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import {
+  ARCHITECT_SOFTWARES,
   CONTENT_TYPES,
+  DETAIL_CATEGORIES,
+  FAMILY_CATEGORIES,
+  REVIT_VERSIONS,
   TAG_SOURCES,
   TAG_STATUS,
   TAG_TOPICS,
@@ -19,5 +23,9 @@ export async function GET(request: Request) {
     topics: TAG_TOPICS,
     statuses: TAG_STATUS,
     columns,
+    familyCategories: FAMILY_CATEGORIES,
+    detailCategories: DETAIL_CATEGORIES,
+    revitVersions: REVIT_VERSIONS,
+    architectSoftwares: ARCHITECT_SOFTWARES,
   });
 }

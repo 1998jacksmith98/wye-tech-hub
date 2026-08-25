@@ -1,7 +1,8 @@
-#! python3
-from wyetechhub import ui
+from Autodesk.Revit.UI import TaskDialog
 
 try:
-    ui.show_move_stage()
-except Exception as exc:
-    ui.alert(exc)
+    from wyetechhub.run import run
+    run("show_move_stage")
+except Exception:
+    import traceback
+    TaskDialog.Show("Tech Hub", traceback.format_exc()[-1200:])

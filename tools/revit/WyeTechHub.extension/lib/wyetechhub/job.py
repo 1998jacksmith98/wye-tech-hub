@@ -43,3 +43,30 @@ def current_job_number():
         if found:
             return found
     return ""
+
+
+def current_revit_version():
+    try:
+        from pyrevit import HOST_APP
+        raw = str(getattr(HOST_APP, "version", "") or "")
+        match = re.search(r"(20\d{2})", raw)
+        return match.group(1) if match else raw[:4]
+    except Exception:
+        return ""
+
+
+def selected_family_name():
+    try:
+        from pyrevit import revit
+        from Autodesk.Revit.DB import FamilyInstance, FamilySymbol
+        ids = list(revit.uidoc.Selection.GetElementIds())
+        if not ids:
+            return ""
+        el = revit.doc.GetElement(ids[0])
+        if isinstance(el, FamilyInstance) and el.Symbol and el.Symbol.Family:
+            return el.Symbol.Family.Name or ""
+        if isinstance(el, FamilySymbol) and el.Family:
+            return el.Family.Name or ""
+    except Exception:
+        pass
+    return ""

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Click-drag a region of the screen and return PNG bytes."""
-
+import clr
+clr.AddReference("System")
+clr.AddReference("System.Drawing")
+clr.AddReference("System.Windows.Forms")
 from System import Convert
 from System.Drawing import Bitmap, Color, Graphics, Pen, Rectangle, SolidBrush
 from System.Drawing.Imaging import ImageFormat
@@ -24,7 +26,7 @@ class RegionOverlay(Form):
     def __init__(self):
         Form.__init__(self)
         bounds = SystemInformation.VirtualScreen
-        self.FormBorderStyle = FormBorderStyle.None
+        self.FormBorderStyle = getattr(FormBorderStyle, "None")
         self.StartPosition = FormStartPosition.Manual
         self.Bounds = bounds
         self.TopMost = True

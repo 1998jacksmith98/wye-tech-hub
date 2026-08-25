@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import json
+import clr
+clr.AddReference("System")
 from wyetechhub import config
 
 try:
     from System.Net import ServicePointManager, SecurityProtocolType, WebClient, WebException
     from System.Text import Encoding
     from System.IO import StreamReader
-    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
+    try:
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
+    except Exception:
+        pass
 except Exception:
     WebClient = None
     WebException = Exception
@@ -105,3 +110,19 @@ def add_entry(job_number, payload):
         "/api/revit/jobs/" + job_number + "/entries",
         payload,
     ).get("job")
+
+
+def add_family(job_number, payload):
+    return _request(
+        "POST",
+        "/api/revit/jobs/" + job_number + "/families",
+        payload,
+    )
+
+
+def add_detail(job_number, payload):
+    return _request(
+        "POST",
+        "/api/revit/jobs/" + job_number + "/details",
+        payload,
+    )
