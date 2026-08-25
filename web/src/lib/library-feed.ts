@@ -201,6 +201,12 @@ export async function ensureProjectLibraryFeed(params: {
     });
   }
 }
+
+export async function removeLibraryFeedEntry(params: {
+  organizationId: string;
+  kind: LibraryKind;
+  libraryId: string;
+}) {
   const existing = await findLibraryEntry(
     params.organizationId,
     params.kind,
