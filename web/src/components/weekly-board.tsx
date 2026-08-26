@@ -15,6 +15,7 @@ import {
   DeadlineManager,
   type DeadlineData,
 } from "@/components/deadline-manager";
+import { visibleBoardDeadlines } from "@/lib/deadlines";
 
 export type BoardCard = {
   id: string;
@@ -298,12 +299,12 @@ export function WeeklyBoard({
                   </Link>
 
                   <div className="mt-3 space-y-1.5">
-                    {card.deadlines.length === 0 ? (
+                    {visibleBoardDeadlines(card.deadlines).length === 0 ? (
                       <span className="text-[11px] font-semibold text-ink-muted">
-                        No deadlines yet
+                        No issue dates yet
                       </span>
                     ) : (
-                      card.deadlines.map((deadline) => (
+                      visibleBoardDeadlines(card.deadlines).map((deadline) => (
                         <div
                           key={deadline.id}
                           className="flex items-center justify-between gap-2 rounded-md bg-warning/10 px-2 py-1"

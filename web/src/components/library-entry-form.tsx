@@ -20,7 +20,7 @@ type ProjectOption = {
 export function LibraryEntryForm({ projects }: { projects: ProjectOption[] }) {
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
-  const [scope, setScope] = useState<"project" | "generic">("project");
+  const [projectId, setProjectId] = useState("");
 
   return (
     <form
@@ -29,13 +29,13 @@ export function LibraryEntryForm({ projects }: { projects: ProjectOption[] }) {
         e.preventDefault();
         const form = e.currentTarget;
         const fd = new FormData(form);
-        fd.set("scope", scope);
+        fd.set("scope", projectId ? "project" : "generic");
         setError("");
         start(async () => {
           try {
             await addLibraryEntry(fd);
             form.reset();
-            setScope("project");
+            setProjectId("");
           } catch (err) {
             setError(err instanceof Error ? err.message : "Could not add entry");
           }
@@ -43,54 +43,24 @@ export function LibraryEntryForm({ projects }: { projects: ProjectOption[] }) {
       }}
     >
       <div className="md:col-span-2">
-        <Label>Link to</Label>
-        <div className="mt-1 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setScope("project")}
-            className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
-              scope === "project"
-                ? "bg-bg-deep !text-[#ffffff]"
-                : "bg-white text-ink-soft hover:text-ink"
-            }`}
-          >
-            A project
-          </button>
-          <button
-            type="button"
-            onClick={() => setScope("generic")}
-            className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
-              scope === "generic"
-                ? "bg-bg-deep !text-[#ffffff]"
-                : "bg-white text-ink-soft hover:text-ink"
-            }`}
-          >
-            Generic issue / knowledge
-          </button>
-        </div>
-        <p className="mt-2 text-xs text-ink-muted">
-          Use generic for Revit quirks, family tips, standards — anything that
-          isn&apos;t tied to one job.
+        <Label>Link to project</Label>
+        <Select
+          name="projectId"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+        >
+          <option value="">— Not linked —</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.jobNumber} – {p.jobName}
+            </option>
+          ))}
+        </Select>
+        <p className="mt-1 text-xs text-ink-muted">
+          Optional. Leave unlinked for general Revit tips, families, standards
+          — anything that isn&apos;t tied to one job.
         </p>
       </div>
-
-      {scope === "project" ? (
-        <div className="md:col-span-2">
-          <Label>Project</Label>
-          <Select name="projectId" required defaultValue="">
-            <option value="" disabled>
-              Select a project…
-            </option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.jobNumber} – {p.jobName}
-              </option>
-            ))}
-          </Select>
-        </div>
-      ) : (
-        <input type="hidden" name="projectId" value="" />
-      )}
 
       <div>
         <Label>Content type</Label>

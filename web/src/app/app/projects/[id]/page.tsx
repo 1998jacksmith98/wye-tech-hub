@@ -12,6 +12,7 @@ import { ProjectForm } from "@/components/project-form";
 import { AssignUsersForm } from "@/components/assign-users-form";
 import { ChecklistItemRow } from "@/components/checklist-controls";
 import { EntryFeed } from "@/components/entry-feed";
+import { DeadlineManager } from "@/components/deadline-manager";
 import { cn } from "@/lib/utils";
 import { ensureProjectLibraryFeed } from "@/lib/library-feed";
 
@@ -45,6 +46,10 @@ export default async function ProjectDetailPage({
       entries: {
         include: { createdBy: true },
         orderBy: { createdAt: "desc" },
+      },
+      deadlines: {
+        include: { assignments: { include: { user: true } } },
+        orderBy: { sortOrder: "asc" },
       },
     },
   });
@@ -86,20 +91,13 @@ export default async function ProjectDetailPage({
             ["Architect", project.architect],
             ["Arch software", project.architectSoftware],
             ["Revit version", project.revitVersion],
-            ["Start date", project.startDate],
-            ["Next issue", project.nextIssueDate],
             ["Created by", project.createdById ? "Team member" : "—"],
           ].map(([label, value]) => (
             <div key={label}>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
                 {label}
               </p>
-              <p
-                className={cn(
-                  "mt-1 text-sm font-medium",
-                  label === "Next issue" && value ? "text-warning" : "text-ink",
-                )}
-              >
+              <p className="mt-1 text-sm font-medium text-ink">
                 {value || "—"}
               </p>
             </div>
@@ -119,6 +117,32 @@ export default async function ProjectDetailPage({
             />
           </div>
         </details>
+      </Card>
+
+      <Card className="fade-up p-6">
+        <SectionTitle eyebrow="Programme" title="Issue dates" />
+        <p className="mb-4 -mt-2 text-sm text-ink-soft">
+          Same dates as the weekly board tile — add extra issues and assign
+          technicians to each one.
+        </p>
+        <DeadlineManager
+          projectId={project.id}
+          members={members.map((m) => ({
+            id: m.id,
+            name: m.name,
+            email: m.email,
+          }))}
+          deadlines={project.deadlines.map((d) => ({
+            id: d.id,
+            label: d.label,
+            date: d.date,
+            assignees: d.assignments.map((a) => ({
+              id: a.user.id,
+              name: a.user.name,
+              email: a.user.email,
+            })),
+          }))}
+        />
       </Card>
 
       <Card className="fade-up p-6">

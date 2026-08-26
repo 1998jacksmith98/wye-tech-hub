@@ -3,6 +3,7 @@ import { requireSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Badge, Button, Card } from "@/components/ui";
 import { formatRelativeTime } from "@/lib/utils";
+import { visibleBoardDeadlines } from "@/lib/deadlines";
 
 export default async function ProjectsHome({
   searchParams,
@@ -21,6 +22,10 @@ export default async function ProjectsHome({
     include: {
       assignments: { include: { user: true } },
       checklist: { where: { isComplete: false } },
+      deadlines: {
+        include: { assignments: { include: { user: true } } },
+        orderBy: { sortOrder: "asc" },
+      },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -103,10 +108,25 @@ export default async function ProjectsHome({
                     {project.leadEngineer ? (
                       <p>Engineer: {project.leadEngineer}</p>
                     ) : null}
-                    {project.nextIssueDate ? (
-                      <p className="font-semibold text-warning">
-                        Next issue: {project.nextIssueDate}
-                      </p>
+                    {visibleBoardDeadlines(project.deadlines).length > 0 ? (
+                      <div className="space-y-1">
+                        {visibleBoardDeadlines(project.deadlines)
+                          .slice(0, 3)
+                          .map((d) => (
+                            <p key={d.id} className="font-semibold text-warning">
+                              {d.label}: {d.date || "No date"}
+                              {d.assignments.length > 0
+                                ? ` · ${d.assignments
+                                    .map(
+                                      (a) =>
+                                        a.user.name?.split(" ")[0] ||
+                                        a.user.email,
+                                    )
+                                    .join(", ")}`
+                                : ""}
+                            </p>
+                          ))}
+                      </div>
                     ) : null}
                     {project.checklist.length > 0 ? (
                       <p className="font-semibold text-accent-deep">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   addProjectDeadline,
@@ -43,6 +44,11 @@ export function DeadlineManager({
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const router = useRouter();
+
+  function afterSave() {
+    router.refresh();
+  }
 
   return (
     <div className="space-y-3 rounded-xl border border-line bg-white p-3">
@@ -83,6 +89,7 @@ export function DeadlineManager({
                   try {
                     await updateProjectDeadline(d.id, fd);
                     setEditingId(null);
+                    afterSave();
                   } catch (err) {
                     setError(
                       err instanceof Error ? err.message : "Could not update",
@@ -133,6 +140,7 @@ export function DeadlineManager({
                     start(async () => {
                       try {
                         await deleteProjectDeadline(d.id);
+                        afterSave();
                       } catch (err) {
                         setError(
                           err instanceof Error
@@ -163,6 +171,7 @@ export function DeadlineManager({
               try {
                 await addProjectDeadline(projectId, fd);
                 setAdding(false);
+                afterSave();
               } catch (err) {
                 setError(
                   err instanceof Error ? err.message : "Could not add deadline",
