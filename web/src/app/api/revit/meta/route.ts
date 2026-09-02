@@ -4,6 +4,8 @@ import {
   CONTENT_TYPES,
   DETAIL_CATEGORIES,
   FAMILY_CATEGORIES,
+  ISSUE_CATEGORIES,
+  ISSUE_STATUSES,
   REVIT_VERSIONS,
   TAG_SOURCES,
   TAG_STATUS,
@@ -25,6 +27,8 @@ export async function GET(request: Request) {
     columns,
     familyCategories: FAMILY_CATEGORIES,
     detailCategories: DETAIL_CATEGORIES,
+    issueCategories: ISSUE_CATEGORIES,
+    issueStatuses: ISSUE_STATUSES,
     revitVersions: REVIT_VERSIONS,
     architectSoftwares: ARCHITECT_SOFTWARES,
   });

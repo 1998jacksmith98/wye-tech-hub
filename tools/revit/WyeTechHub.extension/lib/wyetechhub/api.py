@@ -126,3 +126,13 @@ def add_detail(job_number, payload):
         "/api/revit/jobs/" + job_number + "/details",
         payload,
     )
+
+
+def add_issue(payload, job_number=None):
+    if job_number:
+        return _request(
+            "POST",
+            "/api/revit/jobs/" + job_number + "/issues",
+            payload,
+        )
+    return _request("POST", "/api/revit/issues", payload)

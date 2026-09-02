@@ -653,3 +653,153 @@ def show_add_detail():
     form.Controls.Add(save_btn)
     form.Controls.Add(cancel_btn)
     form.ShowDialog()
+
+
+def show_add_issue():
+    if not ensure_connected():
+        raise Exception("Connect Tech Hub in Settings first.")
+    meta = api.meta()
+    shot = {"b64": None}
+    revit_ver = job.current_revit_version()
+    number = job.current_job_number()
+    job_data = None
+    if number:
+        try:
+            job_data = api.get_job(number)
+        except Exception:
+            job_data = None
+
+    form = Form()
+    form.Text = "Add technical issue" + (
+        " — " + ((job_data or {}).get("jobName") or number) if number else ""
+    )
+    form.StartPosition = FormStartPosition.CenterScreen
+    form.ClientSize = Size(640, 700)
+    form.MaximizeBox = False
+    form.AutoScroll = True
+    theme.style_form(form)
+
+    form.Controls.Add(_label("Title", 20, 18, 280))
+    name_box = _textbox(20, 38, 300)
+    form.Controls.Add(name_box)
+
+    form.Controls.Add(_label("Category", 340, 18, 280))
+    category_box = _combo(
+        340,
+        38,
+        280,
+        meta.get("issueCategories")
+        or [
+            "Warnings",
+            "Crashes / errors",
+            "Families",
+            "Worksharing",
+            "Views / sheets",
+            "Export / print",
+            "Performance",
+            "Coordination",
+            "Other",
+        ],
+        "Other",
+        blank=False,
+    )
+    form.Controls.Add(category_box)
+
+    form.Controls.Add(_label("Status", 20, 74, 280))
+    status_box = _combo(
+        20,
+        94,
+        300,
+        meta.get("issueStatuses") or ["Needs attention", "Resolved"],
+        "Needs attention",
+        blank=False,
+    )
+    form.Controls.Add(status_box)
+
+    form.Controls.Add(_label("Revit version", 340, 74, 280))
+    version_box = _combo(
+        340, 94, 280, meta.get("revitVersions"), revit_ver or "2024", blank=False
+    )
+    form.Controls.Add(version_box)
+
+    y = 134
+    link_box = None
+    if job_data:
+        link_box = _checkbox(
+            "Link to this job — also shows on the job information feed",
+            20, y, 600, True,
+        )
+        form.Controls.Add(link_box)
+        y += 36
+    else:
+        hint = Label()
+        hint.Location = Point(20, y)
+        hint.Size = Size(600, 32)
+        if number:
+            hint.Text = (
+                "No matching Tech Hub job for this model. The issue will still "
+                "appear on Technical issues and the master information feed."
+            )
+        else:
+            hint.Text = (
+                "No J-number found on this model. The issue will still appear "
+                "on Technical issues and the master information feed."
+            )
+        theme.style_label(hint, muted=True)
+        form.Controls.Add(hint)
+        y += 40
+
+    form.Controls.Add(_label("The issue", 20, y, 200))
+    desc_box = _textbox(20, y + 20, 600, 90, multiline=True)
+    form.Controls.Add(desc_box)
+    y += 120
+
+    form.Controls.Add(_label("Workaround or fix", 20, y, 280))
+    work_box = _textbox(20, y + 20, 600, 70, multiline=True)
+    form.Controls.Add(work_box)
+    y += 100
+
+    form.Controls.Add(_label("Keywords (comma separated)", 20, y, 280))
+    keywords_box = _textbox(20, y + 20, 600)
+    form.Controls.Add(keywords_box)
+    y += 56
+
+    shot_label = Label()
+    shot_label.Location = Point(20, y)
+    shot_label.Size = Size(600, 24)
+    shot_label.Text = "No screenshot yet."
+    theme.style_label(shot_label, muted=True)
+    form.Controls.Add(shot_label)
+
+    capture_btn = _button("Create screenshot (click and drag)", 20, y + 28, 260, 32)
+    capture_btn.Click += _attach_screenshot(form, shot, shot_label)
+    form.Controls.Add(capture_btn)
+
+    def on_save(sender, args):
+        payload = {
+            "name": name_box.Text,
+            "category": _combo_value(category_box),
+            "status": _combo_value(status_box),
+            "revitVersion": _combo_value(version_box),
+            "description": desc_box.Text,
+            "workaround": work_box.Text,
+            "keywords": keywords_box.Text,
+            "linkToJob": bool(link_box.Checked) if link_box is not None else False,
+        }
+        if shot["b64"]:
+            payload["screenshotBase64"] = shot["b64"]
+            payload["screenshotFileName"] = (number or "issue") + "-issue.png"
+        try:
+            api.add_issue(payload, number if job_data else None)
+            alert("Technical issue added to Tech Hub.")
+            form.Close()
+        except Exception as exc:
+            alert(str(exc))
+
+    save_btn = _button("Add issue", 390, y + 80, 110, 32, primary=True)
+    save_btn.Click += on_save
+    cancel_btn = _button("Cancel", 510, y + 80, 110, 32)
+    cancel_btn.DialogResult = DialogResult.Cancel
+    form.Controls.Add(save_btn)
+    form.Controls.Add(cancel_btn)
+    form.ShowDialog()

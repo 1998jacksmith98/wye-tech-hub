@@ -83,8 +83,9 @@ export default async function AdminPage() {
         <SectionTitle eyebrow="Revit" title="Connect Revit" />
         <p className="mb-4 text-sm text-ink-soft">
           Create a personal token, then paste it into the Tech Hub tab in Revit.
-          That lets you add notes, screenshots, checklist items and move the
-          weekly board without leaving the model.
+          That lets you add notes, screenshots, families, details, technical
+          issues, checklist items and move the weekly board without leaving
+          the model.
         </p>
         <ol className="mb-6 list-decimal space-y-1 pl-5 text-sm text-ink-soft">
           <li>Create a token below and copy it once.</li>

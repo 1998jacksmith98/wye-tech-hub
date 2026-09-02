@@ -22,6 +22,7 @@ model Organization {
   entries      Entry[]
   families     Family[]
   typicalDetails TypicalDetail[]
+  technicalIssues TechnicalIssue[]
 }
 
 model BoardColumn {
@@ -60,6 +61,7 @@ model User {
   activities         Activity[]
   familiesCreated    Family[]
   typicalDetailsCreated TypicalDetail[]
+  technicalIssuesCreated TechnicalIssue[]
   revitTokens        RevitApiToken[]
 }
 
@@ -142,6 +144,7 @@ model Project {
   activities   Activity[]
   typicalDetails TypicalDetail[]
   families       Family[]
+  technicalIssues TechnicalIssue[]
 
   @@index([organizationId, status])
   @@index([organizationId, updatedAt])
@@ -360,4 +363,48 @@ model TypicalDetailImage {
   detail TypicalDetail @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   @@index([detailId, sortOrder])
+}
+
+model TechnicalIssue {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String?
+  name           String
+  description    String   @default("")
+  workaround     String   @default("")
+  status         String   @default("Needs attention")
+  category       String   @default("Other")
+  keywords       String   @default("")
+  jobNumber      String   @default("")
+  jobName        String   @default("")
+  revitVersion   String   @default("")
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdBy    User?                 @relation(fields: [createdById], references: [id])
+  images       TechnicalIssueImage[]
+
+  @@index([organizationId, updatedAt])
+  @@index([organizationId, category])
+  @@index([organizationId, status])
+  @@index([projectId])
+}
+
+model TechnicalIssueImage {
+  id               String   @id @default(cuid())
+  issueId          String
+  fileName         String
+  fileMimeType     String?
+  sharePointItemId String?
+  sharePointWebUrl String?
+  localFilePath    String?
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  issue TechnicalIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, sortOrder])
 }

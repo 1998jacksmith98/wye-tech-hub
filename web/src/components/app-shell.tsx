@@ -54,6 +54,12 @@ export function AppShell({
                 Details
               </Link>
               <Link
+                href="/app/issues"
+                className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
+              >
+                Technical issues
+              </Link>
+              <Link
                 href="/app/admin"
                 className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
               >

@@ -36,6 +36,7 @@ export const TAG_SOURCES = [
   "Revit",
   "Details",
   "Families",
+  "Technical issues",
   "PDF",
   "Screenshot",
   "Other",
@@ -57,6 +58,7 @@ export const TAG_TOPICS = [
   "Custom Families",
   "Project specific families",
   "Typical details",
+  "Technical issues",
   "Templates / Standards",
   "Other",
 ] as const;
@@ -79,6 +81,20 @@ export const FAMILY_CATEGORIES = [
   "Plumbing",
   "Profiles / Detail Items",
   "Annotation / Tags",
+  "Other",
+] as const;
+
+export const ISSUE_STATUSES = ["Needs attention", "Resolved"] as const;
+
+export const ISSUE_CATEGORIES = [
+  "Warnings",
+  "Crashes / errors",
+  "Families",
+  "Worksharing",
+  "Views / sheets",
+  "Export / print",
+  "Performance",
+  "Coordination",
   "Other",
 ] as const;
 

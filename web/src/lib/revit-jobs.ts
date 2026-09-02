@@ -306,6 +306,8 @@ type LibraryInput = {
   filePath?: string;
   revitVersion?: string;
   drawnIn?: string;
+  status?: string;
+  workaround?: string;
   linkToJob?: boolean;
   screenshotBase64?: string;
   screenshotFileName?: string;
@@ -479,4 +481,86 @@ export async function addRevitDetail(
   revalidatePath("/app");
 
   return detail;
+}
+
+export async function addRevitIssue(
+  actor: RevitActor,
+  project: { id: string; jobNumber: string; jobName: string } | null,
+  input: LibraryInput,
+) {
+  const name = (input.name || "").trim();
+  const description = (input.description || "").trim();
+  if (!name) throw new Error("Give the issue a short title.");
+  if (!description) throw new Error("Explain the issue.");
+
+  const orgSlug = actor.organizationSlug || ORG_SLUG;
+  const linked = Boolean(project) && input.linkToJob !== false;
+  const status =
+    (input.status || "").trim() === "Resolved"
+      ? "Resolved"
+      : "Needs attention";
+  const issue = await prisma.technicalIssue.create({
+    data: {
+      organizationId: actor.organizationId,
+      name,
+      description,
+      workaround: (input.workaround || "").trim(),
+      category: (input.category || "Other").trim() || "Other",
+      keywords: (input.keywords || "").trim(),
+      status,
+      projectId: linked && project ? project.id : null,
+      jobNumber: linked && project ? project.jobNumber : "",
+      jobName: linked && project ? project.jobName : "",
+      revitVersion: (input.revitVersion || "").trim(),
+      createdById: actor.userId,
+    },
+  });
+
+  const uploaded = await uploadLibraryScreenshot(
+    actor,
+    orgSlug,
+    `issues/${issue.id}`,
+    input,
+  );
+  if (uploaded) {
+    await prisma.technicalIssueImage.create({
+      data: {
+        issueId: issue.id,
+        fileName: uploaded.fileName,
+        fileMimeType: uploaded.fileMimeType,
+        sharePointItemId: uploaded.sharePointItemId,
+        sharePointWebUrl: uploaded.sharePointWebUrl,
+        localFilePath: uploaded.localFilePath,
+        sortOrder: 0,
+      },
+    });
+  }
+
+  await syncLibraryFeedEntry({
+    organizationId: actor.organizationId,
+    userId: actor.userId,
+    kind: "technical-issue",
+    libraryId: issue.id,
+    projectId: linked && project ? project.id : null,
+    name: issue.name,
+    description: issue.description,
+    category: issue.category,
+    filePath: "",
+    status: issue.status,
+    workaround: issue.workaround,
+    image: uploaded,
+  });
+
+  await logActivity({
+    organizationId: actor.organizationId,
+    projectId: linked && project ? project.id : null,
+    userId: actor.userId,
+    action: "added technical issue",
+    detail: name,
+  });
+
+  revalidatePath("/app/issues");
+  revalidatePath("/app");
+
+  return issue;
 }
