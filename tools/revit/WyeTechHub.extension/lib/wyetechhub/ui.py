@@ -803,3 +803,109 @@ def show_add_issue():
     form.Controls.Add(save_btn)
     form.Controls.Add(cancel_btn)
     form.ShowDialog()
+
+
+def _safe_file_name(name):
+    cleaned = []
+    for ch in str(name or "guide"):
+        if ch.isalnum() or ch in " ._-()":
+            cleaned.append(ch)
+        else:
+            cleaned.append("_")
+    text = "".join(cleaned).strip() or "guide"
+    return text
+
+
+def show_guides():
+    if not ensure_connected():
+        raise Exception("Connect Tech Hub in Settings first.")
+
+    guides = api.list_guides()
+    form = Form()
+    form.Text = "Tech Hub — Guides"
+    form.ClientSize = Size(720, 540)
+    form.FormBorderStyle = FormBorderStyle.FixedDialog
+    form.StartPosition = FormStartPosition.CenterScreen
+    form.MaximizeBox = False
+    form.MinimizeBox = False
+    theme.style_form(form)
+
+    form.Controls.Add(_label("Search guides", 20, 16, 200, bold=True))
+    search_box = _textbox(20, 38, 680)
+    form.Controls.Add(search_box)
+
+    listing = ListBox()
+    listing.Location = Point(20, 78)
+    listing.Size = Size(680, 360)
+    theme.style_listbox(listing)
+    theme.enable_word_wrap(listing)
+    form.Controls.Add(listing)
+
+    status = Label()
+    status.Location = Point(20, 446)
+    status.Size = Size(400, 22)
+    theme.style_label(status, muted=True)
+    form.Controls.Add(status)
+
+    shown = {"rows": []}
+
+    def refresh(sender=None, args=None):
+        query = (search_box.Text or "").strip().lower()
+        terms = [part for part in query.split() if part]
+        rows = []
+        listing.Items.Clear()
+        for guide in guides:
+            haystack = " ".join([
+                str(guide.get("title") or ""),
+                str(guide.get("summary") or ""),
+                str(guide.get("category") or ""),
+                str(guide.get("keywords") or ""),
+                str(guide.get("fileName") or ""),
+                str(guide.get("fileType") or ""),
+                str(guide.get("createdByName") or ""),
+            ]).lower()
+            if terms and not all(term in haystack for term in terms):
+                continue
+            title = guide.get("title") or "Untitled guide"
+            kind = guide.get("fileType") or "Document"
+            category = guide.get("category") or ""
+            summary = (guide.get("summary") or "").replace("\r", " ").replace("\n", " ")
+            line = title + "    ·    " + kind
+            if category:
+                line += "    ·    " + category
+            if summary:
+                line += "\n" + summary
+            listing.Items.Add(line)
+            rows.append(guide)
+        shown["rows"] = rows
+        status.Text = "Showing " + str(len(rows)) + " of " + str(len(guides)) + " guides"
+
+    search_box.TextChanged += refresh
+    refresh()
+
+    def on_open(sender, args):
+        index = listing.SelectedIndex
+        if index < 0 or index >= len(shown["rows"]):
+            alert("Select a guide first.")
+            return
+        guide = shown["rows"][index]
+        folder = os.path.join(os.environ.get("TEMP") or ".", "WyeTechHub", "guides")
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        dest = os.path.join(folder, _safe_file_name(guide.get("fileName")))
+        try:
+            api.download_guide(guide.get("id"), dest)
+            os.startfile(dest)
+        except Exception as exc:
+            alert(str(exc))
+
+    open_btn = _button("Open document", 430, 458, 140, 32, primary=True)
+    open_btn.Click += on_open
+    listing.DoubleClick += on_open
+    close_btn = _button("Close", 580, 458, 120, 32)
+    close_btn.DialogResult = DialogResult.Cancel
+    form.Controls.Add(open_btn)
+    form.Controls.Add(close_btn)
+    form.AcceptButton = open_btn
+    form.CancelButton = close_btn
+    form.ShowDialog()

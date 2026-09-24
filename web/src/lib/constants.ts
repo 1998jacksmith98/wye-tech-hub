@@ -84,6 +84,19 @@ export const FAMILY_CATEGORIES = [
   "Other",
 ] as const;
 
+export const GUIDE_CATEGORIES = [
+  "Modelling",
+  "Standards",
+  "Families",
+  "Details",
+  "Coordination",
+  "Software",
+  "Office process",
+  "Other",
+] as const;
+
+export const GUIDE_EXTENSIONS = [".doc", ".docx", ".ppt", ".pptx"] as const;
+
 export const ISSUE_STATUSES = ["Needs attention", "Resolved"] as const;
 
 export const ISSUE_CATEGORIES = [

@@ -60,6 +60,12 @@ export function AppShell({
                 Technical issues
               </Link>
               <Link
+                href="/app/guides"
+                className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
+              >
+                Guides
+              </Link>
+              <Link
                 href="/app/admin"
                 className="rounded-lg px-3 py-2 hover:bg-white hover:text-ink"
               >

@@ -128,6 +128,20 @@ def add_detail(job_number, payload):
     )
 
 
+def list_guides():
+    return _request("GET", "/api/revit/guides").get("guides") or []
+
+
+def download_guide(guide_id, dest_path):
+    client, base = _client()
+    try:
+        client.DownloadFile(base + "/api/revit/guides/" + guide_id + "/file", dest_path)
+    except WebException as exc:
+        raise ApiError(_parse_error(exc))
+    finally:
+        client.Dispose()
+
+
 def add_issue(payload, job_number=None):
     if job_number:
         return _request(

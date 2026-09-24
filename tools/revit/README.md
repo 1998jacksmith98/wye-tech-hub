@@ -10,6 +10,7 @@ A pyRevit tab so technicians can update Tech Hub without leaving the model.
 | **New Note** | Same fields as the web information form + click-and-drag screenshot |
 | **Checklist** | Tick / add items |
 | **Move Stage** | Pipeline / Not started / Assigned / Checking / Complete |
+| **Guides** | Search Word and PowerPoint guides and open the file without leaving Revit |
 | **Open Hub** | Opens the job tile in the browser |
 | **Settings** | Hub URL + personal token |
 

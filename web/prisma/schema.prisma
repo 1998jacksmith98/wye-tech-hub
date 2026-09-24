@@ -23,6 +23,7 @@ model Organization {
   families     Family[]
   typicalDetails TypicalDetail[]
   technicalIssues TechnicalIssue[]
+  guides          Guide[]
 }
 
 model BoardColumn {
@@ -62,6 +63,7 @@ model User {
   familiesCreated    Family[]
   typicalDetailsCreated TypicalDetail[]
   technicalIssuesCreated TechnicalIssue[]
+  guidesCreated      Guide[]
   revitTokens        RevitApiToken[]
 }
 
@@ -407,4 +409,27 @@ model TechnicalIssueImage {
   issue TechnicalIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId, sortOrder])
+}
+
+model Guide {
+  id               String   @id @default(cuid())
+  organizationId   String
+  title            String
+  summary          String   @default("")
+  category         String   @default("Other")
+  keywords         String   @default("")
+  fileName         String
+  fileMimeType     String?
+  sharePointItemId String?
+  sharePointWebUrl String?
+  localFilePath    String?
+  createdById      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId, updatedAt])
+  @@index([organizationId, category])
 }
