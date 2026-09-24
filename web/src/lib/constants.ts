@@ -10,6 +10,19 @@ export const ARCHITECT_SOFTWARES = [
   "Other",
 ] as const;
 
+export const DETAIL_DRAWN_IN = [
+  "Revit 2018",
+  "Revit 2019",
+  "Revit 2020",
+  "Revit 2021",
+  "Revit 2022",
+  "Revit 2023",
+  "Revit 2024",
+  "Revit 2025",
+  "Revit 2026",
+  "Revit 2027",
+] as const;
+
 export const REVIT_VERSIONS = [
   "2020",
   "2021",

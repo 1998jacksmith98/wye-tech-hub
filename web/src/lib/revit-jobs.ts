@@ -485,7 +485,7 @@ export async function addRevitDetail(
       materials: (input.materials || "").trim(),
       keywords: (input.keywords || "").trim(),
       filePath,
-      drawnIn: (input.drawnIn || "Revit").trim() || "Revit",
+      drawnIn: (input.drawnIn || "Revit 2024").trim() || "Revit 2024",
       projectId: linked ? project.id : null,
       jobNumber: linked ? project.jobNumber : "",
       jobName: linked ? project.jobName : "",

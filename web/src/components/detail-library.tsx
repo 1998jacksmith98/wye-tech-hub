@@ -7,7 +7,7 @@ import {
   deleteTypicalDetailImage,
   updateTypicalDetail,
 } from "@/lib/actions/details";
-import { ARCHITECT_SOFTWARES, DETAIL_CATEGORIES } from "@/lib/constants";
+import { DETAIL_CATEGORIES, DETAIL_DRAWN_IN } from "@/lib/constants";
 import { Button, Input, Label, Select, Textarea } from "@/components/ui";
 import { PasteableFileField } from "@/components/pasteable-file-field";
 
@@ -150,8 +150,12 @@ function DetailForm({
       </div>
       <div>
         <Label>Drawn in</Label>
-        <Select name="drawnIn" defaultValue={initial?.drawnIn || "AutoCAD"}>
-          {ARCHITECT_SOFTWARES.map((v) => (
+        <Select name="drawnIn" defaultValue={initial?.drawnIn || "Revit 2024"}>
+          {initial?.drawnIn &&
+          !(DETAIL_DRAWN_IN as readonly string[]).includes(initial.drawnIn) ? (
+            <option value={initial.drawnIn}>{initial.drawnIn}</option>
+          ) : null}
+          {DETAIL_DRAWN_IN.map((v) => (
             <option key={v} value={v}>
               {v}
             </option>

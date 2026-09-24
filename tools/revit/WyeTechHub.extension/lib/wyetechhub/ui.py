@@ -736,7 +736,24 @@ def show_add_detail():
 
     form.Controls.Add(_label("Drawn in", 20, 358, 200))
     drawn_box = _combo(
-        20, 378, 200, meta.get("architectSoftwares"), "Revit", blank=False
+        20,
+        378,
+        220,
+        meta.get("detailDrawnIn")
+        or [
+            "Revit 2018",
+            "Revit 2019",
+            "Revit 2020",
+            "Revit 2021",
+            "Revit 2022",
+            "Revit 2023",
+            "Revit 2024",
+            "Revit 2025",
+            "Revit 2026",
+            "Revit 2027",
+        ],
+        "Revit 2024",
+        blank=False,
     )
     form.Controls.Add(drawn_box)
 
