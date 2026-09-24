@@ -139,7 +139,7 @@ function GuideForm({
           <img
             src={initial.iconUrl}
             alt=""
-            className="mb-2 h-20 w-20 rounded-xl object-cover"
+            className="mb-2 h-20 w-20 rounded-xl bg-bg object-contain"
           />
         ) : null}
         <PasteableFileField
@@ -207,7 +207,7 @@ function GuideCard({ guide }: { guide: GuideData }) {
           <img
             src={guide.iconUrl}
             alt=""
-            className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+            className="h-20 w-20 shrink-0 rounded-2xl bg-bg object-contain"
           />
         ) : null}
         <div className="min-w-0 flex-1">
