@@ -193,56 +193,102 @@ def show_settings():
     form.ShowDialog()
 
 
+def _people(rows):
+    names = []
+    for row in rows or []:
+        name = (row.get("name") or row.get("email") or "").strip()
+        if name:
+            names.append(name)
+    return ", ".join(names) if names else "—"
+
+
+def _dash(value):
+    text = (value or "").strip() if not isinstance(value, bool) else value
+    if text is None or text == "":
+        return "—"
+    return str(text)
+
+
 def show_this_job():
     data, number = require_job()
     form = Form()
-    form.Text = "Tech Hub — This job"
+    title = data.get("jobName") or number
+    form.Text = "This job — " + title
     form.StartPosition = FormStartPosition.CenterScreen
     form.MaximizeBox = False
     theme.style_form(form)
 
-    lines = [
-        "Job: {0}  {1}".format(data.get("jobNumber") or number, data.get("jobName") or ""),
-        "Board: {0}".format(data.get("boardColumnName") or "Unassigned"),
-        "Next issue: {0}".format(data.get("nextIssueDate") or "—"),
-        "Lead engineer: {0}".format(data.get("leadEngineer") or "—"),
-        "Open checklist items: {0}".format(data.get("openChecklistCount") or 0),
-    ]
-    assignees = data.get("assignees") or []
-    if assignees:
-        names = ", ".join([a.get("name") or a.get("email") or "?" for a in assignees])
-        lines.append("Assigned: " + names)
+    heading = Label()
+    heading.Location = Point(20, 16)
+    heading.Size = Size(560, 28)
+    heading.Text = "{0}    {1}".format(data.get("jobNumber") or number, title)
+    theme.style_label(heading, bold=True)
+    form.Controls.Add(heading)
 
-    info = Label()
-    info.Location = Point(20, 18)
-    # AutoSize + a width cap (0 = no height cap) means the label grows
-    # downward to fit however tall the text actually renders, instead
-    # of clipping at a hardcoded pixel height that assumed the old font.
-    info.MaximumSize = Size(480, 0)
-    info.AutoSize = True
+    status = Label()
+    status.Location = Point(20, 44)
+    status.Size = Size(560, 20)
+    status.Text = "Status: {0}     Weekly board: {1}".format(
+        _dash(data.get("status")),
+        _dash(data.get("boardColumnName")),
+    )
+    theme.style_label(status, muted=True)
+    form.Controls.Add(status)
+
+    lines = [
+        "PROJECT",
+        "Client: {0}".format(_dash(data.get("client"))),
+        "Architect: {0}".format(_dash(data.get("architect"))),
+        "Architect software: {0}".format(_dash(data.get("architectSoftware"))),
+        "Lead engineer: {0}".format(_dash(data.get("leadEngineer"))),
+        "Revit version: {0}".format(_dash(data.get("revitVersion"))),
+        "",
+        "ASSIGNED TECHNICIANS",
+        _people(data.get("assignees")),
+        "",
+        "PROJECT TIMELINE",
+    ]
+    timeline = data.get("timeline") or []
+    if not timeline:
+        lines.append("No timeline on this job yet.")
+    for stage in timeline:
+        reached = "Reached" if stage.get("isReached") else "Not reached"
+        lines.append("{0}  —  {1}".format(stage.get("stage") or "Stage", reached))
+        lines.append("  Target: {0}".format(_dash(stage.get("targetDate"))))
+        lines.append("  Confirmed: {0}".format(_dash(stage.get("confirmedDate"))))
+        notes = (stage.get("notes") or "").strip()
+        if notes:
+            lines.append("  Notes: {0}".format(notes))
+
+    lines.append("")
+    lines.append("ISSUE DATES")
+    deadlines = data.get("deadlines") or []
+    dated = [d for d in deadlines if (d.get("date") or "").strip() or (d.get("label") or "").strip()]
+    if not dated:
+        lines.append("No issue dates yet.")
+    for item in dated:
+        who = _people(item.get("assignees"))
+        lines.append("{0}:  {1}    {2}".format(
+            item.get("label") or "Date",
+            _dash(item.get("date")),
+            "" if who == "—" else "(" + who + ")",
+        ).rstrip())
+
+    lines.append("")
+    lines.append("Open checklist items: {0}".format(data.get("openChecklistCount") or 0))
+    lines.append("Read only — change this job on the Tech Hub website.")
+
+    info = _textbox(20, 74, 600, 430, multiline=True)
+    info.ReadOnly = True
     info.Text = "\n".join(lines)
-    theme.style_label(info)
+    info.TabStop = False
     form.Controls.Add(info)
 
-    button_y = info.Bottom + 20
-
-    def add_btn(text, x, click):
-        btn = _button(text, x, button_y, 110, 32)
-        btn.Click += click
-        form.Controls.Add(btn)
-        return btn
-
-    add_btn("Move stage", 20, lambda s, a: (form.Close(), show_move_stage()))
-    add_btn("Checklist", 140, lambda s, a: (form.Close(), show_checklist()))
-    add_btn("New note", 260, lambda s, a: (form.Close(), show_new_note()))
-    add_btn("Open hub", 380, lambda s, a: open_url(data.get("hubUrl")))
-
-    close_y = button_y + 50
-    close_btn = _button("Close", 400, close_y, 90, 30, primary=True)
+    close_btn = _button("Close", 510, 518, 110, 32, primary=True)
     close_btn.DialogResult = DialogResult.Cancel
     form.Controls.Add(close_btn)
-
-    form.ClientSize = Size(520, close_y + 50)
+    form.CancelButton = close_btn
+    form.ClientSize = Size(640, 566)
     form.ShowDialog()
 
 

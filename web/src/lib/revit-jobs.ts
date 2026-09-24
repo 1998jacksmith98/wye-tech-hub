@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureBoardColumns } from "@/lib/board";
 import { logActivity } from "@/lib/activity";
 import { storeUpload } from "@/lib/files";
-import { ORG_SLUG } from "@/lib/constants";
+import { ORG_SLUG, TIMELINE_STAGES } from "@/lib/constants";
 import { hubBaseUrl, type RevitActor } from "@/lib/revit-auth";
 import { syncLibraryFeedEntry } from "@/lib/library-feed";
 
@@ -32,7 +32,11 @@ export async function findProjectByJobNumber(
         include: { assignedTo: true },
         orderBy: [{ isComplete: "asc" }, { createdAt: "desc" }],
       },
-      deadlines: { orderBy: { sortOrder: "asc" } },
+      deadlines: {
+        include: { assignments: { include: { user: true } } },
+        orderBy: { sortOrder: "asc" },
+      },
+      milestones: true,
     },
   });
 
@@ -58,6 +62,10 @@ export function serializeJob(
     jobName: project.jobName,
     status: project.status,
     leadEngineer: project.leadEngineer,
+    client: project.client,
+    architect: project.architect,
+    architectSoftware: project.architectSoftware,
+    revitVersion: project.revitVersion,
     nextIssueDate: project.nextIssueDate,
     boardColumnId: project.boardColumnId,
     boardColumnName: project.boardColumn?.name || "Unassigned",
@@ -71,7 +79,26 @@ export function serializeJob(
       id: d.id,
       label: d.label,
       date: d.date,
+      assignees: (d.assignments || []).map((a) => ({
+        id: a.user.id,
+        name: a.user.name,
+        email: a.user.email,
+      })),
     })),
+    timeline: [...(project.milestones || [])]
+      .sort((a, b) => {
+        const order = TIMELINE_STAGES as readonly string[];
+        const ai = order.indexOf(a.stage);
+        const bi = order.indexOf(b.stage);
+        return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+      })
+      .map((m) => ({
+        stage: m.stage,
+        targetDate: m.targetDate,
+        confirmedDate: m.confirmedDate,
+        isReached: m.isReached,
+        notes: m.notes,
+      })),
     openChecklistCount: openChecklist.length,
     checklist: project.checklist.map((item) => ({
       id: item.id,

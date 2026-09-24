@@ -6,7 +6,7 @@ A pyRevit tab so technicians can update Tech Hub without leaving the model.
 
 | Button | Does |
 |---|---|
-| **This Job** | Job name, board column, next issue, open checklist count |
+| **This Job** | Read-only project info: client, architect, technicians, timeline |
 | **New Note** | Same fields as the web information form + click-and-drag screenshot |
 | **Checklist** | Tick / add items |
 | **Move Stage** | Pipeline / Not started / Assigned / Checking / Complete |
