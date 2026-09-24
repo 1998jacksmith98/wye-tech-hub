@@ -423,6 +423,11 @@ model Guide {
   sharePointItemId String?
   sharePointWebUrl String?
   localFilePath    String?
+  iconFileName         String?
+  iconMimeType         String?
+  iconSharePointItemId String?
+  iconSharePointWebUrl String?
+  iconLocalFilePath    String?
   createdById      String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

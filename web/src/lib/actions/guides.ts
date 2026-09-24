@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/session";
 import { logActivity } from "@/lib/activity";
 import { storeUpload } from "@/lib/files";
-import { ORG_SLUG } from "@/lib/constants";
+import { GUIDE_CATEGORIES, ORG_SLUG } from "@/lib/constants";
 import {
   guideMimeType,
   isAllowedBlobUrl,
@@ -22,10 +22,37 @@ async function ownedGuide(guideId: string, organizationId: string) {
 function readMeta(formData: FormData) {
   const title = String(formData.get("title") || "").trim();
   const summary = String(formData.get("summary") || "").trim();
-  const category = String(formData.get("category") || "Other").trim();
+  const rawCategory = String(formData.get("category") || "Other").trim();
+  const category = (GUIDE_CATEGORIES as readonly string[]).includes(rawCategory)
+    ? rawCategory
+    : "Other";
   const keywords = String(formData.get("keywords") || "").trim();
   if (!title) throw new Error("Give the guide a title.");
   return { title, summary, category, keywords };
+}
+
+async function iconFromForm(formData: FormData, orgSlug: string, userId: string) {
+  const file = formData.get("icon");
+  if (!(file instanceof File) || file.size === 0) return null;
+  if (!file.type.startsWith("image/") && !/\.(png|jpe?g|gif|webp)$/i.test(file.name)) {
+    throw new Error("The picture needs to be an image (PNG, JPG, GIF, or WebP).");
+  }
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const uploaded = await storeUpload({
+    userId,
+    orgSlug,
+    projectNumber: "guides/icons",
+    fileName: file.name || "guide-icon.png",
+    mimeType: file.type || "image/png",
+    bytes,
+  });
+  return {
+    iconFileName: uploaded.fileName,
+    iconMimeType: uploaded.fileMimeType,
+    iconSharePointItemId: uploaded.sharePointItemId,
+    iconSharePointWebUrl: uploaded.sharePointWebUrl,
+    iconLocalFilePath: uploaded.localFilePath,
+  };
 }
 
 async function fileFromForm(
@@ -80,6 +107,7 @@ export async function addGuide(formData: FormData) {
   if (!uploaded?.fileName) {
     throw new Error("Attach a Word or PowerPoint file.");
   }
+  const icon = await iconFromForm(formData, org.slug || ORG_SLUG, session.user.id);
 
   await prisma.guide.create({
     data: {
@@ -94,6 +122,7 @@ export async function addGuide(formData: FormData) {
       sharePointWebUrl: uploaded.sharePointWebUrl,
       localFilePath: uploaded.localFilePath,
       createdById: session.user.id,
+      ...(icon || {}),
     },
   });
 
@@ -118,6 +147,10 @@ export async function updateGuide(guideId: string, formData: FormData) {
     guide.organization.slug || ORG_SLUG,
     session.user.id,
   );
+  const removeIcon = String(formData.get("removeIcon") || "") === "on";
+  const icon = removeIcon
+    ? null
+    : await iconFromForm(formData, guide.organization.slug || ORG_SLUG, session.user.id);
 
   await prisma.guide.update({
     where: { id: guideId },
@@ -135,6 +168,15 @@ export async function updateGuide(guideId: string, formData: FormData) {
             localFilePath: uploaded.localFilePath,
           }
         : {}),
+      ...(removeIcon
+        ? {
+            iconFileName: null,
+            iconMimeType: null,
+            iconSharePointItemId: null,
+            iconSharePointWebUrl: null,
+            iconLocalFilePath: null,
+          }
+        : icon || {}),
     },
   });
 

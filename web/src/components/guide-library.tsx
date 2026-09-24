@@ -6,6 +6,7 @@ import { addGuide, deleteGuide, updateGuide } from "@/lib/actions/guides";
 import { GUIDE_CATEGORIES } from "@/lib/constants";
 import { guideKind, guideMimeType, isGuideFileName } from "@/lib/guides";
 import { Button, Input, Label, Select, Textarea } from "@/components/ui";
+import { PasteableFileField } from "@/components/pasteable-file-field";
 
 export type GuideData = {
   id: string;
@@ -14,6 +15,7 @@ export type GuideData = {
   category: string;
   keywords: string;
   fileName: string;
+  iconUrl: string | null;
   createdByName: string;
   createdAt: string | Date;
 };
@@ -79,7 +81,15 @@ function GuideForm({
       </div>
       <div>
         <Label>Category</Label>
-        <Select name="category" defaultValue={initial?.category || "Other"}>
+        <Select
+          name="category"
+          defaultValue={
+            initial &&
+            (GUIDE_CATEGORIES as readonly string[]).includes(initial.category)
+              ? initial.category
+              : "Other"
+          }
+        >
           {GUIDE_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -121,6 +131,28 @@ function GuideForm({
             .doc, .docx, .ppt or .pptx. These guides are not linked to a job.
           </p>
         )}
+      </div>
+      <div className="md:col-span-2">
+        <Label>Picture (optional)</Label>
+        {initial?.iconUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={initial.iconUrl}
+            alt=""
+            className="mb-2 h-20 w-20 rounded-xl object-cover"
+          />
+        ) : null}
+        <PasteableFileField
+          name="icon"
+          accept="image/*"
+          hint="A small picture shown on the guide tile. Paste a screenshot or browse for an image."
+        />
+        {initial?.iconUrl ? (
+          <label className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
+            <input name="removeIcon" type="checkbox" />
+            Remove the current picture
+          </label>
+        ) : null}
       </div>
       <div className="md:col-span-2 flex gap-2">
         <Button type="submit" disabled={pending}>
@@ -169,7 +201,17 @@ function GuideCard({ guide }: { guide: GuideData }) {
 
   return (
     <article className="flex min-h-56 flex-col rounded-2xl border border-line bg-white p-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-4">
+        {guide.iconUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={guide.iconUrl}
+            alt=""
+            className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+          />
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
           {kind} · {guide.category}
         </p>
@@ -194,8 +236,10 @@ function GuideCard({ guide }: { guide: GuideData }) {
             Delete
           </button>
         </div>
+          </div>
+          <h3 className="display mt-2 text-2xl font-semibold leading-tight">{guide.title}</h3>
+        </div>
       </div>
-      <h3 className="display mt-2 text-2xl font-semibold leading-tight">{guide.title}</h3>
       {guide.summary ? (
         <p className="mt-3 flex-1 text-base leading-relaxed text-ink">{guide.summary}</p>
       ) : (

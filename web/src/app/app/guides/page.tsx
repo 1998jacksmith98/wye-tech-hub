@@ -40,6 +40,9 @@ export default async function GuidesPage() {
             category: guide.category,
             keywords: guide.keywords,
             fileName: guide.fileName,
+            iconUrl:
+              guide.iconSharePointWebUrl ||
+              (guide.iconLocalFilePath ? `/api/guides/${guide.id}/icon` : null),
             createdByName: guide.createdBy?.name || "Someone",
             createdAt: guide.createdAt,
           }))}
