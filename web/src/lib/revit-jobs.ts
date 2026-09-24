@@ -79,6 +79,7 @@ export function serializeJob(
       id: d.id,
       label: d.label,
       date: d.date,
+      isComplete: d.isComplete,
       assignees: (d.assignments || []).map((a) => ({
         id: a.user.id,
         name: a.user.name,
@@ -109,6 +110,35 @@ export function serializeJob(
         : null,
     })),
   };
+}
+
+export async function setJobDeadlineComplete(
+  actor: RevitActor,
+  projectId: string,
+  deadlineId: string,
+  isComplete: boolean,
+) {
+  const deadline = await prisma.projectDeadline.findFirst({
+    where: {
+      id: deadlineId,
+      projectId,
+      project: { organizationId: actor.organizationId },
+    },
+  });
+  if (!deadline) throw new Error("Issue date not found");
+
+  await prisma.projectDeadline.update({
+    where: { id: deadlineId },
+    data: { isComplete },
+  });
+
+  await logActivity({
+    organizationId: actor.organizationId,
+    projectId,
+    userId: actor.userId,
+    action: isComplete ? "completed deadline" : "reopened deadline",
+    detail: `${deadline.label} ${deadline.date}`.trim(),
+  });
 }
 
 export async function moveJobColumn(

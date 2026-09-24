@@ -41,6 +41,7 @@ export default async function CalendarPage() {
       id: d.id,
       label: d.label,
       date: d.date,
+      isComplete: d.isComplete,
       assignees: d.assignments.map((a) => ({
         id: a.user.id,
         name: a.user.name,
@@ -48,7 +49,7 @@ export default async function CalendarPage() {
       })),
     }));
 
-    return project.deadlines.map((d) => ({
+    return project.deadlines.filter((d) => !d.isComplete).map((d) => ({
       deadlineId: d.id,
       projectId: project.id,
       jobNumber: project.jobNumber,

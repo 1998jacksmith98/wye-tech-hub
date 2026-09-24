@@ -150,6 +150,50 @@ export async function updateProjectDeadline(
   revalidatePath("/app");
 }
 
+export async function setDeadlineComplete(deadlineId: string, isComplete: boolean) {
+  const session = await requireSession();
+  const deadline = await prisma.projectDeadline.findUnique({
+    where: { id: deadlineId },
+    include: { project: true },
+  });
+  if (
+    !deadline ||
+    deadline.project.organizationId !== session.user.organizationId
+  ) {
+    throw new Error("Deadline not found");
+  }
+
+  await prisma.projectDeadline.update({
+    where: { id: deadlineId },
+    data: { isComplete },
+  });
+
+  if (/issue/i.test(deadline.label)) {
+    const openIssues = await prisma.projectDeadline.findMany({
+      where: { projectId: deadline.projectId, isComplete: false },
+      orderBy: { sortOrder: "asc" },
+    });
+    const next = openIssues.find((d) => /issue/i.test(d.label) && d.date);
+    await prisma.project.update({
+      where: { id: deadline.projectId },
+      data: { nextIssueDate: next?.date || "" },
+    });
+  }
+
+  await logActivity({
+    organizationId: session.user.organizationId!,
+    projectId: deadline.projectId,
+    userId: session.user.id,
+    action: isComplete ? "completed deadline" : "reopened deadline",
+    detail: `${deadline.label} ${deadline.date}`.trim(),
+  });
+
+  revalidatePath("/app/weekly");
+  revalidatePath("/app/calendar");
+  revalidatePath(`/app/projects/${deadline.projectId}`);
+  revalidatePath("/app");
+}
+
 export async function deleteProjectDeadline(deadlineId: string) {
   const session = await requireSession();
   const deadline = await prisma.projectDeadline.findUnique({

@@ -17,6 +17,7 @@ from System.Windows.Forms import (
     FormStartPosition,
     Label,
     ListBox,
+    Panel,
     ScrollBars,
     TextBox,
 )
@@ -209,6 +210,37 @@ def _dash(value):
     return str(text)
 
 
+def _job_label(parent, x, y, w, h, text, bold=False, muted=False):
+    label = Label()
+    label.Location = Point(x, y)
+    label.Size = Size(w, h)
+    label.Text = text
+    theme.style_label(label, bold=bold, muted=muted)
+    parent.Controls.Add(label)
+    return label
+
+
+def _job_rule(parent, y, width):
+    rule = Panel()
+    rule.Location = Point(8, y)
+    rule.Size = Size(width, 1)
+    rule.BackColor = theme.LINE
+    parent.Controls.Add(rule)
+    return y + 14
+
+
+def _job_section(parent, y, width, title):
+    y = _job_rule(parent, y, width)
+    _job_label(parent, 12, y, width - 8, 22, title, bold=True)
+    return y + 28
+
+
+def _job_row(parent, y, width, label, value):
+    _job_label(parent, 12, y, 168, 22, label, muted=True)
+    _job_label(parent, 184, y, width - 176, 22, value)
+    return y + 26
+
+
 def show_this_job():
     data, number = require_job()
     form = Form()
@@ -216,79 +248,127 @@ def show_this_job():
     form.Text = "This job — " + title
     form.StartPosition = FormStartPosition.CenterScreen
     form.MaximizeBox = False
+    form.FormBorderStyle = FormBorderStyle.FixedDialog
     theme.style_form(form)
 
-    heading = Label()
-    heading.Location = Point(20, 16)
-    heading.Size = Size(560, 28)
-    heading.Text = "{0}    {1}".format(data.get("jobNumber") or number, title)
-    theme.style_label(heading, bold=True)
-    form.Controls.Add(heading)
-
-    status = Label()
-    status.Location = Point(20, 44)
-    status.Size = Size(560, 20)
-    status.Text = "Status: {0}     Weekly board: {1}".format(
-        _dash(data.get("status")),
-        _dash(data.get("boardColumnName")),
+    _job_label(
+        form, 20, 16, 600, 28,
+        "{0}    {1}".format(data.get("jobNumber") or number, title),
+        bold=True,
     )
-    theme.style_label(status, muted=True)
-    form.Controls.Add(status)
+    _job_label(
+        form, 20, 46, 600, 20,
+        "Status: {0}      Weekly board: {1}".format(
+            _dash(data.get("status")),
+            _dash(data.get("boardColumnName")),
+        ),
+        muted=True,
+    )
 
-    lines = [
-        "PROJECT",
-        "Client: {0}".format(_dash(data.get("client"))),
-        "Architect: {0}".format(_dash(data.get("architect"))),
-        "Architect software: {0}".format(_dash(data.get("architectSoftware"))),
-        "Lead engineer: {0}".format(_dash(data.get("leadEngineer"))),
-        "Revit version: {0}".format(_dash(data.get("revitVersion"))),
-        "",
-        "ASSIGNED TECHNICIANS",
-        _people(data.get("assignees")),
-        "",
-        "PROJECT TIMELINE",
-    ]
+    body = Panel()
+    body.Location = Point(16, 76)
+    body.Size = Size(608, 460)
+    body.AutoScroll = True
+    body.BackColor = theme.BG
+    form.Controls.Add(body)
+
+    width = 560
+    y = 4
+    y = _job_section(body, y, width, "PROJECT")
+    y = _job_row(body, y, width, "Client", _dash(data.get("client")))
+    y = _job_row(body, y, width, "Architect", _dash(data.get("architect")))
+    y = _job_row(body, y, width, "Architect software", _dash(data.get("architectSoftware")))
+    y = _job_row(body, y, width, "Lead engineer", _dash(data.get("leadEngineer")))
+    y = _job_row(body, y, width, "Revit version", _dash(data.get("revitVersion")))
+
+    y += 8
+    y = _job_section(body, y, width, "ASSIGNED TECHNICIANS")
+    _job_label(body, 12, y, width - 8, 22, _people(data.get("assignees")))
+    y += 30
+
+    y += 8
+    y = _job_section(body, y, width, "PROJECT TIMELINE")
     timeline = data.get("timeline") or []
     if not timeline:
-        lines.append("No timeline on this job yet.")
+        _job_label(body, 12, y, width - 8, 22, "No timeline on this job yet.", muted=True)
+        y += 28
     for stage in timeline:
         reached = "Reached" if stage.get("isReached") else "Not reached"
-        lines.append("{0}  —  {1}".format(stage.get("stage") or "Stage", reached))
-        lines.append("  Target: {0}".format(_dash(stage.get("targetDate"))))
-        lines.append("  Confirmed: {0}".format(_dash(stage.get("confirmedDate"))))
+        _job_label(
+            body, 12, y, width - 8, 22,
+            "{0}    ·    {1}".format(stage.get("stage") or "Stage", reached),
+            bold=True,
+        )
+        y += 24
+        y = _job_row(body, y, width, "Target", _dash(stage.get("targetDate")))
+        y = _job_row(body, y, width, "Confirmed", _dash(stage.get("confirmedDate")))
         notes = (stage.get("notes") or "").strip()
         if notes:
-            lines.append("  Notes: {0}".format(notes))
+            y = _job_row(body, y, width, "Notes", notes)
+        y += 8
 
-    lines.append("")
-    lines.append("ISSUE DATES")
+    y += 4
+    y = _job_section(body, y, width, "ISSUE DATES")
     deadlines = data.get("deadlines") or []
-    dated = [d for d in deadlines if (d.get("date") or "").strip() or (d.get("label") or "").strip()]
+    dated = [
+        item for item in deadlines
+        if (item.get("date") or "").strip() or (item.get("label") or "").strip()
+    ]
     if not dated:
-        lines.append("No issue dates yet.")
+        _job_label(body, 12, y, width - 8, 22, "No issue dates yet.", muted=True)
+        y += 28
     for item in dated:
         who = _people(item.get("assignees"))
-        lines.append("{0}:  {1}    {2}".format(
-            item.get("label") or "Date",
-            _dash(item.get("date")),
-            "" if who == "—" else "(" + who + ")",
-        ).rstrip())
+        value = _dash(item.get("date"))
+        if who != "—":
+            value = value + "    (" + who + ")"
+        done = bool(item.get("isComplete"))
+        if done:
+            value = value + "    ·    Complete"
+        value_label = _job_label(body, 184, y, 250, 22, value, muted=done)
+        _job_label(body, 12, y, 168, 22, item.get("label") or "Date", muted=True)
+        box = CheckBox()
+        box.Text = "Complete"
+        box.Checked = done
+        box.Location = Point(440, y - 2)
+        box.Size = Size(110, 24)
+        box.ForeColor = theme.MUTED if done else theme.TEXT
+        box.BackColor = theme.BG
+        box.Font = theme.font(9)
 
-    lines.append("")
-    lines.append("Open checklist items: {0}".format(data.get("openChecklistCount") or 0))
-    lines.append("Read only — change this job on the Tech Hub website.")
+        def make_toggle(deadline_id, label):
+            def handler(sender, args):
+                try:
+                    api.set_deadline_complete(number, deadline_id, bool(sender.Checked))
+                    label.ForeColor = theme.MUTED if sender.Checked else theme.TEXT
+                    sender.ForeColor = theme.MUTED if sender.Checked else theme.TEXT
+                except Exception as exc:
+                    sender.Checked = not bool(sender.Checked)
+                    alert(str(exc))
+            return handler
 
-    info = _textbox(20, 74, 600, 430, multiline=True)
-    info.ReadOnly = True
-    info.Text = "\n".join(lines)
-    info.TabStop = False
-    form.Controls.Add(info)
+        box.CheckedChanged += make_toggle(item.get("id"), value_label)
+        body.Controls.Add(box)
+        y += 28
 
-    close_btn = _button("Close", 510, 518, 110, 32, primary=True)
+    y += 8
+    y = _job_section(body, y, width, "CHECKLIST")
+    y = _job_row(
+        body, y, width, "Still open",
+        str(data.get("openChecklistCount") or 0),
+    )
+    y += 6
+    _job_label(
+        body, 12, y, width - 8, 36,
+        "Tick Complete on an issue date to clear it from the weekly board. The rest of this window is read only.",
+        muted=True,
+    )
+
+    close_btn = _button("Close", 514, 550, 110, 32, primary=True)
     close_btn.DialogResult = DialogResult.Cancel
     form.Controls.Add(close_btn)
     form.CancelButton = close_btn
-    form.ClientSize = Size(640, 566)
+    form.ClientSize = Size(640, 598)
     form.ShowDialog()
 
 

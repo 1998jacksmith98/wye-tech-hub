@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import {
   addProjectDeadline,
   deleteProjectDeadline,
+  setDeadlineComplete,
   updateProjectDeadline,
 } from "@/lib/actions/deadlines";
 import { Button, Input, Label } from "@/components/ui";
@@ -14,6 +15,7 @@ export type DeadlineData = {
   id: string;
   label: string;
   date: string;
+  isComplete?: boolean;
   assignees: { id: string; name: string | null; email: string | null }[];
 };
 
@@ -101,11 +103,26 @@ export function DeadlineManager({
           ) : (
             <div
               key={d.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-bg/50 px-3 py-2"
+              className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 ${
+                d.isComplete
+                  ? "border-line bg-bg/70 text-ink-muted"
+                  : "border-line bg-bg/50"
+              }`}
             >
-              <div>
-                <p className="text-sm font-semibold text-ink">{d.label}</p>
-                <p className="text-xs font-semibold text-warning">
+              <div className={d.isComplete ? "opacity-70" : ""}>
+                <p
+                  className={`text-sm font-semibold ${
+                    d.isComplete ? "text-ink-muted line-through" : "text-ink"
+                  }`}
+                >
+                  {d.label}
+                  {d.isComplete ? "  ·  Complete" : ""}
+                </p>
+                <p
+                  className={`text-xs font-semibold ${
+                    d.isComplete ? "text-ink-muted" : "text-warning"
+                  }`}
+                >
                   {d.date || "No date set"}
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -123,7 +140,30 @@ export function DeadlineManager({
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-xs font-semibold text-ink-soft">
+                  <input
+                    type="checkbox"
+                    checked={!!d.isComplete}
+                    disabled={pending}
+                    onChange={() => {
+                      setError("");
+                      start(async () => {
+                        try {
+                          await setDeadlineComplete(d.id, !d.isComplete);
+                          afterSave();
+                        } catch (err) {
+                          setError(
+                            err instanceof Error
+                              ? err.message
+                              : "Could not update",
+                          );
+                        }
+                      });
+                    }}
+                  />
+                  Complete
+                </label>
                 <button
                   type="button"
                   className="text-xs font-semibold text-ink-muted hover:text-accent"

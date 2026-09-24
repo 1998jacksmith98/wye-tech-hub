@@ -136,6 +136,7 @@ export default async function ProjectDetailPage({
             id: d.id,
             label: d.label,
             date: d.date,
+            isComplete: d.isComplete,
             assignees: d.assignments.map((a) => ({
               id: a.user.id,
               name: a.user.name,

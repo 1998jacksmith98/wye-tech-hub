@@ -168,9 +168,10 @@ model ProjectAssignment {
 model ProjectDeadline {
   id        String   @id @default(cuid())
   projectId String
-  label     String   // e.g. Start, Issue, S3 Issue, Custom
-  date      String   @default("")
-  sortOrder Int      @default(0)
+  label      String   // e.g. Start, Issue, S3 Issue, Custom
+  date       String   @default("")
+  isComplete Boolean  @default(false)
+  sortOrder  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

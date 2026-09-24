@@ -132,6 +132,14 @@ def list_guides():
     return _request("GET", "/api/revit/guides").get("guides") or []
 
 
+def set_deadline_complete(job_number, deadline_id, is_complete):
+    return _request(
+        "POST",
+        "/api/revit/jobs/" + job_number + "/deadlines/" + deadline_id,
+        {"isComplete": bool(is_complete)},
+    ).get("job")
+
+
 def download_guide(guide_id, dest_path):
     client, base = _client()
     try:
