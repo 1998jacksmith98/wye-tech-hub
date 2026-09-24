@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureProjectDeadlines } from "@/lib/actions/deadlines";
 import { Card } from "@/components/ui";
 import { MonthCalendar } from "@/components/month-calendar";
+import { WipStamp } from "@/components/wip-stamp";
 import type { DeadlineData } from "@/components/deadline-manager";
 
 export default async function CalendarPage() {
@@ -65,6 +66,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="fade-up space-y-6">
+      <WipStamp />
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-muted">
           Schedule

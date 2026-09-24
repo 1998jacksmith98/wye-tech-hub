@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureBoardColumns } from "@/lib/board";
 import { ensureProjectDeadlines } from "@/lib/actions/deadlines";
 import { WeeklyBoard } from "@/components/weekly-board";
+import { WipStamp } from "@/components/wip-stamp";
 
 export default async function WeeklyBoardPage() {
   const session = await requireSession();
@@ -95,6 +96,7 @@ export default async function WeeklyBoardPage() {
 
   return (
     <div className="fade-up space-y-5">
+      <WipStamp />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-muted">

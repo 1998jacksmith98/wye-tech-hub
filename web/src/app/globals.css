@@ -115,3 +115,30 @@ textarea {
 .display {
   font-family: var(--font-display), "Segoe UI", sans-serif;
 }
+
+.wip-stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  transform: rotate(-18deg);
+  border: 12px solid rgba(185, 28, 28, 0.78);
+  box-shadow: inset 0 0 0 5px rgba(185, 28, 28, 0.4);
+  color: rgba(185, 28, 28, 0.78);
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+  font-size: clamp(5.5rem, 16vw, 12rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 0.9;
+  padding: 0.08em 0.28em 0.12em;
+  border-radius: 16px;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.wip-stamp-note {
+  font-size: 0.22em;
+  letter-spacing: 0.22em;
+  font-weight: 700;
+}
